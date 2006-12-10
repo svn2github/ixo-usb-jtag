@@ -59,8 +59,10 @@
 
 #if defined KEIL
 
+#ifndef C8051F326_H
 sfr16 TMR2RL	= 0xca;					// Timer2 reload value
 sfr16 TMR2		= 0xcc;					// Timer2 counter
+#endif
 
 #endif // KEIL
 
@@ -124,7 +126,9 @@ void Delay(void);						// About 80 us/1 ms on Full Speed
 
 #if defined SDCC
 
+#ifndef C8051F326_H
 extern void Timer2_ISR(void) interrupt 5;					// Checks if switches are pressed
+#endif
 //extern void Adc_ConvComplete_ISR(void) interrupt 10;		// Upon Conversion, switch ADC MUX
 extern void Usb_ISR(void) interrupt 8;						// Determines type of USB interrupt
 
@@ -138,7 +142,9 @@ extern void Usb_ISR(void) interrupt 8;						// Determines type of USB interrupt
 
 unsigned char _sdcc_external_startup ( void )
 {
+#ifndef C8051F326_H
    PCA0MD &= ~0x40;                    // Disable Watchdog timer temporarily
+#endif
    return 0;
 }
 
@@ -356,6 +362,7 @@ void Usb0_Init(void)
 
 void Timer_Init(void)
 {
+#ifndef C8051F326_H
 	TMR2CN	 = 0x00;					// Stop Timer2; Clear TF2;
 
 	CKCON	&= ~0xF0;					// Timer2 clocked based on T2XCLK;
@@ -363,6 +370,7 @@ void Timer_Init(void)
 	TMR2	 = 0xffff;					// Set to reload immediately
 
 	TR2		 = 1;						// Start Timer2
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -389,6 +397,7 @@ void Adc_Init(void)
 }
 */
 
+#ifndef C8051F326_H
 //-----------------------------------------------------------------------------
 // Timer2_ISR
 //-----------------------------------------------------------------------------
@@ -424,6 +433,7 @@ void Timer2_ISR(void) interrupt 5
 	}
 	else Toggle2 = 0;
 }
+#endif
 
 //-----------------------------------------------------------------------------
 // Adc_ConvComplete_ISR

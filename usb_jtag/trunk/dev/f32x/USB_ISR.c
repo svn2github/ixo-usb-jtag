@@ -311,10 +311,12 @@ void Handle_Setup(void)
 void Usb_Suspend(void)
 {			
 	// Put the device in a low power configuration
+#ifndef C8051F326_H
 	P0MDIN	= 0x00;						// Port 0 configured as analog input
 	P1MDIN	= 0x00;						// Port 1 configured as analog input
 	P2MDIN	= 0x00;						// Port 2 configured as analog input
 	P3MDIN	= 0x00;						// Port 3 configured as analog input
+#endif
 
 //	ADC0CN &= ~0x80;					// Disable ADC0
 //	REF0CN	= 0x00;						// Disable voltage reference

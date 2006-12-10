@@ -7,7 +7,7 @@
 
 // Select one of appropriate include file for the device
 
-#include <c8051f320.h>
+#include <c8051f326.h>
 //#include <c8051f340.h>
 
 // Compiler specific definition
