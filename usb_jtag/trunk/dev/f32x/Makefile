@@ -20,6 +20,11 @@ USB_CDC_UART.rel: USB_CDC_UART.c
 USB_Class_Requests.rel: USB_Class_Requests.c
 USB_Standard_Requests.rel: USB_Standard_Requests.c
 
+.PHONY: reflashed
+reflashed: $(MAIN.hex)
+	ec2writeflash --port=USB --hex $<
+	touch flashed
+
 flashed: $(MAIN).hex
 	ec2writeflash --port=USB --hex $<
 	touch $@
