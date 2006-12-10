@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Serial/Parallel converter, interfacing JTAG chain with FTDI FT245BM
 -------------------------------------------------------------------------------
--- Copyright (C) 2005,2006 Kolja Waschk, ixo.de
+-- Copyright (C) 2005-2007 Kolja Waschk, ixo.de
 -------------------------------------------------------------------------------
 -- This code is part of usbjtag. usbjtag is free software; you can redistribute
 -- it and/or modify it under the terms of the GNU General Public License as
@@ -25,17 +25,26 @@ ENTITY jtag_logic IS
 		CLK : IN STD_LOGIC;        -- external 24/25 MHz oscillator
 		nRXF : IN STD_LOGIC;       -- FT245BM nRXF
 		nTXE : IN STD_LOGIC;       -- FT245BM nTXE
-		B_TDO : IN STD_LOGIC;      -- JTAG input: TDO of last device in chain
+		B_TDO  : IN STD_LOGIC;     -- JTAG input: TDO, AS/PS input: CONF_DONE
+		B_ASDO : IN STD_LOGIC;     -- AS input: DATAOUT, PS input: nSTATUS
+		B_TCK  : BUFFER STD_LOGIC; -- JTAG output: TCK to chain, AS/PS DCLK
+		B_TMS  : BUFFER STD_LOGIC; -- JTAG output: TMS to chain, AS/PS nCONFIG
+		B_NCE  : BUFFER STD_LOGIC; -- AS output: nCE
+		B_NCS  : BUFFER STD_LOGIC; -- AS output: nCS
+		B_TDI  : BUFFER STD_LOGIC; -- JTAG output: TDI to chain, AS: ASDI, PS: DATA0
+		B_OE   : BUFFER STD_LOGIC; -- LED output/output driver enable 
 		nRD : OUT STD_LOGIC;       -- FT245BM nRD
 		WR : OUT STD_LOGIC;        -- FT245BM WR
-		B_TCK : BUFFER STD_LOGIC;  -- JTAG output: TCK to chain
-		B_TMS : BUFFER STD_LOGIC;  -- JTAG output: TMS to chain
-		B_TDI : BUFFER STD_LOGIC;  -- JTAG output: to TDI of first device in chain
 		D : INOUT STD_LOGIC_VECTOR(7 downto 0) -- FT245BM D[7..0]
 	);
 END jtag_logic;
 
 ARCHITECTURE spec OF jtag_logic IS
+
+	-- There are exactly 16 states. If this is encoded using 4 bits, there will
+	-- be no unknown/undefined state. The host will send us 64 times "0" to move
+	-- the state machine to a known state. We don't need a power-on reset.
+	
 	TYPE states IS
 	(
 		wait_for_nRXF_low,
@@ -56,6 +65,10 @@ ARCHITECTURE spec OF jtag_logic IS
 		output_disable
 	);
 	
+	ATTRIBUTE ENUM_ENCODING: STRING;
+	ATTRIBUTE ENUM_ENCODING OF states: TYPE IS 
+	  "0000 0001 0010 0011 0100 0101 0110 0111 1000 1001 1010 1011 1100 1101 1110 1111";
+	
 	SIGNAL carry: STD_LOGIC;
 	SIGNAL do_output: STD_LOGIC;
 	SIGNAL ioshifter: STD_LOGIC_VECTOR(7 DOWNTO 0);
@@ -63,8 +76,7 @@ ARCHITECTURE spec OF jtag_logic IS
 	SIGNAL state, next_state: states;
 	
 BEGIN
-	-- sm: PROCESS(nRXF, nTXE, state, D, bitcount, ioshifter, do_output)
-	sm: PROCESS(nRXF, nTXE, state, bitcount, ioshifter, do_output)
+	sm: PROCESS(CLK, nRXF, nTXE, state, bitcount, ioshifter, do_output)
 
 	BEGIN
 		CASE state IS
@@ -183,10 +195,13 @@ BEGIN
 			END IF;
 			
 			IF state = bits_set_pins_from_data THEN
-				B_TDI <= ioshifter(4);
-				B_TMS <= ioshifter(1);
 				B_TCK <= ioshifter(0);
-				ioshifter <= "0000001" & B_TDO;
+				B_TMS <= ioshifter(1);
+				B_NCE <= ioshifter(2);
+				B_NCS <= ioshifter(3);
+				B_TDI <= ioshifter(4);
+				B_OE  <= ioshifter(5);
+				ioshifter <= "000000" & B_ASDO & B_TDO;
 			END IF;
 			
 			IF state = bytes_set_bitcount THEN
@@ -195,7 +210,11 @@ BEGIN
 			END IF;
 			
 			IF state = bytes_get_tdo_set_tdi THEN
-				carry <= B_TDO;
+			    IF B_NCS = '1' THEN
+	    			carry <= B_TDO; -- JTAG mode (nCS=1)
+				ELSE
+	    			carry <= B_ASDO; -- Active Serial mode (nCS=0)
+				END IF;
 				B_TDI <= ioshifter(0);
 				bitcount <= bitcount - 1;
 			END IF;
