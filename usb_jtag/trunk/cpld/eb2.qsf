@@ -1,0 +1,94 @@
+# Copyright (C) 1991-2006 Altera Corporation
+# Your use of Altera Corporation's design tools, logic functions 
+# and other software and tools, and its AMPP partner logic 
+# functions, and any output files any of the foregoing 
+# (including device programming or simulation files), and any 
+# associated documentation or information are expressly subject 
+# to the terms and conditions of the Altera Program License 
+# Subscription Agreement, Altera MegaCore Function License 
+# Agreement, or other applicable license agreement, including, 
+# without limitation, that your use is for the sole purpose of 
+# programming logic devices manufactured by Altera and sold by 
+# Altera or its authorized distributors.  Please refer to the 
+# applicable agreement for further details.
+
+
+# The default values for assignments are stored in the file
+#		eb2_assignment_defaults.qdf
+# If this file doesn't exist, and for assignments not listed, see file
+#		assignment_defaults.qdf
+
+# Altera recommends that you do not modify this file. This
+# file is updated automatically by the Quartus II software
+# and any changes you make may be lost or overwritten.
+
+set_global_assignment -name TOP_LEVEL_ENTITY eb2
+set_global_assignment -name ORIGINAL_QUARTUS_VERSION 6.0
+set_global_assignment -name PROJECT_CREATION_TIME_DATE "20:33:16  NOVEMBER 17, 2006"
+
+set_global_assignment -name FAMILY Cyclone
+set_global_assignment -name DEVICE EP1C12F324C6
+set_global_assignment -name LAST_QUARTUS_VERSION 6.0
+set_global_assignment -name FMAX_REQUIREMENT "48 MHz" -section_id "Global clock"
+set_global_assignment -name CYCLONE_OPTIMIZATION_TECHNIQUE SPEED
+set_global_assignment -name GENERATE_RBF_FILE ON
+set_global_assignment -name FITTER_EFFORT "AUTO FIT"
+set_global_assignment -name RESERVE_ASDO_AFTER_CONFIGURATION "AS INPUT TRI-STATED"
+set_global_assignment -name ON_CHIP_BITSTREAM_DECOMPRESSION OFF
+set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED"
+set_global_assignment -name RESERVE_ALL_UNUSED_PINS_NO_OUTPUT_GND "AS INPUT TRI-STATED"
+
+# Pin & Location Assignments
+# ==========================
+
+set_instance_assignment -name CLOCK_SETTINGS "Global clock" -to clk_brd
+set_location_assignment PIN_J16 -to CLK_BRD
+set_location_assignment PIN_N8 -to HA[10]
+set_location_assignment PIN_V6 -to HA[2]
+set_location_assignment PIN_U7 -to HA[4]
+set_location_assignment PIN_V7 -to HA[5]
+set_location_assignment PIN_T7 -to HA[3]
+set_location_assignment PIN_U8 -to HA[8]
+set_location_assignment PIN_V8 -to HA[9]
+set_location_assignment PIN_T8 -to HA[7]
+set_location_assignment PIN_R8 -to HA[6]
+set_location_assignment PIN_U9 -to HA[14]
+set_location_assignment PIN_V9 -to HA[15]
+set_location_assignment PIN_R9 -to HA[12]
+set_location_assignment PIN_T9 -to HA[13]
+set_location_assignment PIN_P9 -to HA[11]
+set_location_assignment PIN_U10 -to HA[19]
+set_location_assignment PIN_T10 -to HA[18]
+set_location_assignment PIN_R10 -to HA[17]
+set_location_assignment PIN_P10 -to HA[16]
+set_location_assignment PIN_N9 -to HB[3]
+set_location_assignment PIN_V10 -to HB[2]
+set_location_assignment PIN_R11 -to HB[4]
+set_location_assignment PIN_T11 -to HB[5]
+set_location_assignment PIN_U11 -to HB[6]
+set_location_assignment PIN_V11 -to HB[7]
+set_location_assignment PIN_V12 -to HB[13]
+set_location_assignment PIN_U12 -to HB[12]
+set_location_assignment PIN_T12 -to HB[11]
+set_location_assignment PIN_R12 -to HB[10]
+set_location_assignment PIN_V13 -to HB[18]
+set_location_assignment PIN_U13 -to HB[17]
+set_location_assignment PIN_T13 -to HB[16]
+set_location_assignment PIN_R13 -to HB[15]
+set_location_assignment PIN_N10 -to HB[8]
+set_location_assignment PIN_P12 -to HB[9]
+set_location_assignment PIN_P13 -to HB[14]
+set_location_assignment PIN_T14 -to HB[19]
+
+# Files
+
+set_global_assignment -name ENABLE_SIGNALTAP OFF
+set_global_assignment -name SMART_RECOMPILE OFF
+set_global_assignment -name VHDL_FILE jtag_logic.vhd
+set_global_assignment -name VHDL_FILE eb2.vhd
+set_global_assignment -name FMAX_REQUIREMENT "50 MHz"
+set_global_assignment -name FMAX_REQUIREMENT "25 MHz" -section_id "Half Clock"
+set_instance_assignment -name CLOCK_SETTINGS "Half Clock" -to half_clk_brd
+set_global_assignment -name SIMULATION_MODE FUNCTIONAL
+set_global_assignment -name STATE_MACHINE_PROCESSING AUTO
+set_global_assignment -name AUTO_ENABLE_SMART_COMPILE OFF
