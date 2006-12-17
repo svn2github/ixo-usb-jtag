@@ -43,7 +43,7 @@
 
 #define VER_USB					0x0200	// USB specification revision
 #define VID						0x16C0	// Vendor ID
-#define PID						0x06EA	// Product ID
+#define PID						0x06AD	// Product ID
 #define DEV_REV					0x0000	// Device Release number
 
 #define DSC_NUM_INTERFACE		2		// Number of Interfaces
