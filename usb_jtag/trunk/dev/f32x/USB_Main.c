@@ -70,6 +70,8 @@ sfr16 TMR2		= 0xcc;					// Timer2 counter
 // Globals
 //-----------------------------------------------------------------------------
 
+#define USE_ADC 0
+
 #if defined KEIL
 
 sbit Led1 = P2^2;						// LED='1' means ON
@@ -95,7 +97,7 @@ BYTE Toggle2 = 0;						// press and release toggles switch
 
 volatile bit switch_changed = FALSE;
 
-/*
+#if USE_ADC
 BYTE Potentiometer = 0x00;				// Last read potentiometer value
 BYTE Temperature   = 0x00;				// Last read temperature sensor value
 
@@ -103,7 +105,7 @@ idata BYTE Out_Packet[64];				// Last packet received from host
 idata BYTE In_Packet[64];				// Next packet to sent to host
 
 code const BYTE TEMP_ADD = 112;			// This constant is added to Temperature
-*/
+#endif
 
 //-----------------------------------------------------------------------------
 // Local Prototypes
@@ -114,8 +116,10 @@ void Sysclk_Init(void);					// Initialize the system clock
 void Port_Init(void);					// Configure ports
 void Usb0_Init(void);					// Configure USB for Full speed
 void Timer_Init(void);					// Timer 2 for use by ADC and swtiches
+#if USE_ADC
 void Adc_Init(void);					// Configure ADC for continuous
 										// conversion low-power mode
+#endif
 
 // Other Routines
 void Delay(void);						// About 80 us/1 ms on Full Speed
@@ -129,7 +133,9 @@ void Delay(void);						// About 80 us/1 ms on Full Speed
 #ifndef C8051F326_H
 extern void Timer2_ISR(void) interrupt 5;					// Checks if switches are pressed
 #endif
-//extern void Adc_ConvComplete_ISR(void) interrupt 10;		// Upon Conversion, switch ADC MUX
+#if USE_ADC
+extern void Adc_ConvComplete_ISR(void) interrupt 10;		// Upon Conversion, switch ADC MUX
+#endif
 extern void Usb_ISR(void) interrupt 8;						// Determines type of USB interrupt
 
 #endif // SDCC
@@ -169,12 +175,14 @@ void main(void)
 	Port_Init();						// Initialize crossbar and GPIO
 	Usb0_Init();						// Initialize USB0
 	Timer_Init();						// Initialize timer2
-//	Adc_Init();							// Initialize ADC
+#if USE_ADC
+	Adc_Init();							// Initialize ADC
+#endif
 	Flush_COMbuffers();					// Initialize COM ring buffer
 	Led1 = FALSE;
 	Led2 = FALSE;
 
-/*
+#if USE_ADC
 	// Set initial values of In_Packet and Out_Packet to zero
 	// Initialized here so that WDT doesn't kick in first
 	for (Count = 0; Count < 64; Count++)
@@ -182,10 +190,11 @@ void main(void)
 		Out_Packet[Count] = 0;
 		In_Packet[Count] = 0;
 	}
-*/
 
-//	EIE1	|= 0x0A;					// Enable conversion complete interrupt and US0
+	EIE1	|= 0x0A;					// Enable conversion complete interrupt and US0
+#else
 	EIE1	|= 0x02;					// Enable USB0 interrupt
+#endif
 	IE		|= 0xA0;					// Enable Timer2 and Global Interrupt enable
 
 	while (1)
@@ -356,6 +365,7 @@ void Usb0_Init(void)
 // Return Value : None
 // Parameters	: None
 // 
+// USB_JTAG: Make Timer reload at approx. 100 Hz for 0x3061 keepalive packets
 // Timer 2 reload, used to check if switch pressed on overflow and
 // used for ADC continuous conversion
 //-----------------------------------------------------------------------------
@@ -373,6 +383,7 @@ void Timer_Init(void)
 #endif
 }
 
+#if USE_ADC
 //-----------------------------------------------------------------------------
 // Adc_Init
 //-----------------------------------------------------------------------------
@@ -383,7 +394,6 @@ void Timer_Init(void)
 // Configures ADC for single ended continuous conversion or Timer2
 //-----------------------------------------------------------------------------
 
-/*
 void Adc_Init(void)
 {
 	REF0CN	= 0x0E;						// Enable voltage reference VREF
@@ -395,7 +405,7 @@ void Adc_Init(void)
 	ADC0CN	= 0xC2;						// Continuous converion on timer 2 
 										// overflow; low power tracking mode on
 }
-*/
+#endif
 
 #ifndef C8051F326_H
 //-----------------------------------------------------------------------------
@@ -435,6 +445,7 @@ void Timer2_ISR(void) interrupt 5
 }
 #endif
 
+#if USE_ADC
 //-----------------------------------------------------------------------------
 // Adc_ConvComplete_ISR
 //-----------------------------------------------------------------------------
@@ -446,7 +457,6 @@ void Timer2_ISR(void) interrupt 5
 //
 //-----------------------------------------------------------------------------
 
-/*
 void Adc_ConvComplete_ISR(void) interrupt 10
 {
 	AD0INT = 0;
@@ -465,7 +475,7 @@ void Adc_ConvComplete_ISR(void) interrupt 10
 		ADC0CF		= 0xF8;				// place ADC0 in right-adjusted mode
 	}
 }
-*/
+#endif
 
 //-----------------------------------------------------------------------------
 // Delay
