@@ -210,10 +210,10 @@ BEGIN
 			END IF;
 			
 			IF state = bytes_get_tdo_set_tdi THEN
-			    IF B_NCS = '1' THEN
-	    			carry <= B_TDO; -- JTAG mode (nCS=1)
+				IF B_NCS = '1' THEN
+					carry <= B_TDO; -- JTAG mode (nCS=1)
 				ELSE
-	    			carry <= B_ASDO; -- Active Serial mode (nCS=0)
+					carry <= B_ASDO; -- Active Serial mode (nCS=0)
 				END IF;
 				B_TDI <= ioshifter(0);
 				bitcount <= bitcount - 1;
