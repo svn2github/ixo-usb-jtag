@@ -41,12 +41,17 @@
 // Definition of descriptors
 //-----------------------------------------------------------------------------
 
-#define VER_USB					0x0200	// USB specification revision
+#define VER_USB					0x0110	// USB specification revision
+#if 1
+#define VID						0x09FB	// Vendor ID
+#define PID						0x6001	// Product ID
+#else
 #define VID						0x16C0	// Vendor ID
 #define PID						0x06AD	// Product ID
-#define DEV_REV					0x0000	// Device Release number
+#endif
+#define DEV_REV					0x0400	// Device Release number
 
-#define DSC_NUM_INTERFACE		2		// Number of Interfaces
+#define DSC_NUM_INTERFACE		1		// Number of Interfaces
 #define DSC_NUM_STRING			4		// Number of String desc
 
 										// Define Endpoint Packet Sizes
@@ -57,7 +62,7 @@
 										//		bulk:		8, 16, 32, 64
 										//		interrupt:	0 - 64
 										//		isoc:		0 - 1023 (512 for 'F32x/34x)
-#define EP1_PACKET_SIZE			0x0010
+#define EP1_PACKET_SIZE			0x0040
 #define EP2_PACKET_SIZE			0x0040
 
 
@@ -174,13 +179,7 @@ typedef struct {
 typedef struct {
 	Tconfiguration_descriptor				m_config_desc;
 		Tinterface_descriptor				m_interface_desc_0;
-			Theader_func_descriptor			m_header_func_desc;
-			Tcall_man_func_descriptor		m_call_man_desc;
-			Tabst_control_mana_descriptor	m_abst_control_desc;
-			Tunion_func_descriptor			m_union_func_desc;
 			Tendpoint_descriptor			m_endpoint_desc_IN1;
-		Tinterface_descriptor				m_interface_desc_1;
-			Tendpoint_descriptor			m_endpoint_desc_IN2;
 			Tendpoint_descriptor			m_endpoint_desc_OUT2;
 } Tconfiguration_desc_set;
 

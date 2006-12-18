@@ -84,7 +84,7 @@ Tconfiguration_desc_set code ConfigDescSet =
 	0x01,				// bConfigurationValue
 	0x00,				// iConfiguration
 	0x80,				// bmAttributes
-	0x0F				// bMaxPower
+	0x4B				// bMaxPower 2*75
   },
   {					// Interface(0) 
 	sizeof(Tinterface_descriptor),	// bLength
@@ -92,10 +92,10 @@ Tconfiguration_desc_set code ConfigDescSet =
 	0x00,				// bInterfaceNumber
 	0x00,				// bAlternateSetting
 	0x02,				// bNumEndpoints
-	0x00,				// bInterfaceClass (Communication Class)
-	0x00,				// bInterfaceSubClass (Abstract Control Model)
-	0x00,				// bInterfaceProcotol (V.25ter, Common AT commands)
-	0x00				// iInterface
+	0xFF,				// bInterfaceClass (Communication Class)
+	0xFF,				// bInterfaceSubClass (Abstract Control Model)
+	0xFF,				// bInterfaceProcotol (V.25ter, Common AT commands)
+	0x02				// iInterface
   },
   {					// Endpoint IN 1
 	sizeof(Tendpoint_descriptor),	// bLength
@@ -103,16 +103,17 @@ Tconfiguration_desc_set code ConfigDescSet =
 	IN_EP1,				// bEndpointAddress
 	DSC_EP_BULK,		// bmAttributes
 	LE( EP1_PACKET_SIZE ),	// MaxPacketSize
-	1					// bInterval
+	0					// bInterval
   },
   {					// Endpoint OUT 1
 	sizeof(Tendpoint_descriptor),	// bLength
 	DSC_TYPE_ENDPOINT,	// bDescriptorType
-	OUT_EP1,			// bEndpointAddress
+	OUT_EP2,			// bEndpointAddress
 	DSC_EP_BULK,		// bmAttributes
-	LE( EP1_PACKET_SIZE ), // MaxPacketSize
+	LE( EP2_PACKET_SIZE ), // MaxPacketSize
 	0					// bInterval
   }
+
 }; //end of Configuration
 
 #define STR0LEN 4

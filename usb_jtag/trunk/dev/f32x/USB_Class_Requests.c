@@ -15,6 +15,8 @@
 #include "USB_CDC_UART.h"
 #include "FIFO_RW.h"
 
+#include "EEPROM.c"
+
 //-----------------------------------------------------------------------------
 // Constant
 //-----------------------------------------------------------------------------
@@ -293,45 +295,39 @@ void CS_Send_Break(void)
 //    0x02  DTR-DSR
 //-----------------------------------------------------------------------------
 
-// comment out temporarily		
-void Vendor_Request( void )
-{
-}
-
-/*
-BYTE cs_flow_control;
+BYTE idata VRQ_Response[2];
 
 void Vendor_Request( void )
 {
-	if (   (Setup.bRequest == VR_FLOW_CONTROL)
-		&& (Setup.wIndex.i == 0) )
+	if((Setup.bmRequestType & DRD_MASK) == DRD_IN)
 	{
-		switch ( Setup.bmRequestType )
+		switch(Setup.bRequest)
 		{
-			case OUT_VR_INTERFACE:
-				if ( Setup.wLength.i == 0 )
-				{
-					cs_flow_control = Setup.wValue.i;
-					// call flow control setup routine here
-					setup_handled = TRUE;
-				}
+			case 0x90:  // READ_EEPROM
+			{
+				DataPtr = PROM + ((Setup.wIndex.c[LSB] << 1) & 0x7F);
+				DataSize = 2;
 				break;
-			case IN_VR_INTERFACE:
-				if (   (Setup.wValue.i == 0)
-					&& (Setup.wLength.i == 1) )
-				{
-					Ep_Status0 = EP_TX;
-					DataPtr = (BYTE *)&cs_flow_control;
-					DataSize = 1;
-					setup_handled = TRUE;
-				}
-				break;
+			};
+
 			default:
+			{
+				VRQ_Response[0] = 0x36;
+				VRQ_Response[1] = 0x83;
+				DataPtr = VRQ_Response;
+				DataSize = 2;
 				break;
-		}
-	}
+			};
+		};
+
+		if(DataSize > 0)
+		{
+			Ep_Status0 = EP_TX;
+		};
+	};
+
+	setup_handled = TRUE;
 }
-*/
 
 //-----------------------------------------------------------------------------
 // Handle_In1
