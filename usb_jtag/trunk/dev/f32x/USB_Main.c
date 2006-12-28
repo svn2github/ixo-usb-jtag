@@ -114,6 +114,7 @@ code const BYTE TEMP_ADD = 112;			// This constant is added to Temperature
 // Initialization Routines
 void Sysclk_Init(void);					// Initialize the system clock
 void Port_Init(void);					// Configure ports
+void UART_Init(void);					// Configure UART(s)
 void Usb0_Init(void);					// Configure USB for Full speed
 void Timer_Init(void);					// Timer 2 for use by ADC and swtiches
 #if USE_ADC
@@ -123,6 +124,10 @@ void Adc_Init(void);					// Configure ADC for continuous
 
 // Other Routines
 void Delay(void);						// About 80 us/1 ms on Full Speed
+void UART_PutNibble(BYTE x);
+void UART_PutString(char *s);
+void UART_PutChar(char c);
+void UART_PutHex(BYTE x);
 
 //-----------------------------------------------------------------------------
 // ISR prototypes for SDCC
@@ -157,6 +162,34 @@ unsigned char _sdcc_external_startup ( void )
 #endif // SDCC
 
 //-----------------------------------------------------------------------------
+// UART_PutChar(char c)
+//-----------------------------------------------------------------------------
+
+void UART_PutChar(char c)
+{
+	TI0 = 0;
+	SBUF0 = c;
+	while(!TI0);
+}
+
+void UART_PutNibble(BYTE x)
+{
+	UART_PutChar(x+(x<10)?'0':('A'-'0'));
+}
+
+void UART_PutHex(BYTE x)
+{
+	UART_PutNibble(x>>4);
+	UART_PutNibble(x&15);
+}
+
+void UART_PutString(char *s)
+{
+	char *sp = s;
+	while(*sp) UART_PutChar(*(sp++));
+}
+
+//-----------------------------------------------------------------------------
 // Main Routine
 //-----------------------------------------------------------------------------
 void main(void)
@@ -173,6 +206,7 @@ void main(void)
 
 	Sysclk_Init();						// Initialize oscillator
 	Port_Init();						// Initialize crossbar and GPIO
+	UART_Init();						// Initialize serial port(s)
 	Usb0_Init();						// Initialize USB0
 	Timer_Init();						// Initialize timer2
 #if USE_ADC
@@ -196,6 +230,8 @@ void main(void)
 	EIE1	|= 0x02;					// Enable USB0 interrupt
 #endif
 	IE		|= 0xA0;					// Enable Timer2 and Global Interrupt enable
+
+	UART_PutString("\r\nRESET\r\n");
 
 	while (1)
 	{
@@ -240,8 +276,7 @@ void main(void)
 void Sysclk_Init(void)
 {
 
-#if defined C8051F320_H
-	OSCICN |= 0x03;						// Configure internal oscillator for
+	OSCICN |= 0x83;						// Configure internal oscillator for
 										// its maximum frequency and enable
 										// missing clock detector
 	CLKMUL	= 0x00;						// Select internal oscillator as
@@ -251,31 +286,10 @@ void Sysclk_Init(void)
 	CLKMUL |= 0xC0;						// Initialize the clock multiplier
 	Delay();							// Delay for clock multiplier to begin
 	while(!(CLKMUL & 0x20));			// Wait for multiplier to lock
+
+#if (defined C8051F320_H) || (defined C8051F326_H)
 	CLKSEL	= SYS_4X_DIV_2 | USB_4X_CLOCK;	// Select system clock and USB clock
-#endif // C8051F320_H
-
-#if defined C8051F326_H
-	OSCICN |= 0x82;
-	CLKMUL  = 0x00;
-	CLKMUL |= 0x80;						// Enable clock multiplier
-	Delay();
-	CLKMUL |= 0xC0;						// Initialize the clock multiplier
-	Delay();							// Delay for clock multiplier to begin
-	while(!(CLKMUL & 0x20));			// Wait for multiplier to lock
-	CLKSEL = 0x02;						// Use Clock Multiplier/2 as system clock
-#endif // C8051F326_H
-
-#if defined C8051F340_H
-	OSCICN |= 0x03;						// Configure internal oscillator for
-										// its maximum frequency and enable
-										// missing clock detector
-	CLKMUL  = 0x00;						// Select internal oscillator as
-										// input to clock multiplier
-	CLKMUL |= 0x80;						// Enable clock multiplier
-	Delay();							// Delay for clock multiplier to begin
-	CLKMUL |= 0xC0;						// Initialize the clock multiplier
-	Delay();							// Delay for clock multiplier to begin
-	while(!(CLKMUL & 0x20));			// Wait for multiplier to lock
+#elif (defined C8051F340_H)
 	CLKSEL	= SYS_4X | USB_4X_CLOCK;	// Select system clock and USB clock
 #endif // C8051F340_H
 
@@ -314,7 +328,13 @@ void Port_Init(void)
 #endif // C8051F320_H
 
 #if defined C8051F326_H
-	P2MDOUT |= 0x0C;					// enable LEDs as a push-pull outputs
+	GPIOCN = 0xC0;						// disable pull-ups, enable input path
+	P0MDOUT |= 0x10;					// enable P0.4 (TxD) as a push-pull output
+	P0 |= 0x10;							// TxD is AND-wired with P0.4
+	//P1MDOUT							// F326 doesn't have P1
+	P2MDOUT = 0;						// no push-pull output enabled on P2
+	//XBR0								// F326 doesn't have a crossbar
+	//XBR1								// F326 doesn't have a crossbar
 #endif // C8051F326_H
 
 #if defined C8051F340_H
@@ -327,6 +347,25 @@ void Port_Init(void)
 	XBR1     = 0x40;					// Enable Crossbar
 #endif // C8051F340_H
 
+}
+
+//-----------------------------------------------------------------------------
+// UART_Init
+//-----------------------------------------------------------------------------
+//
+// Return Value : None
+// Parameters	: None
+// 
+// UART: 115200 Baud 8N1; see also Port_Init for I/O configuration
+//-----------------------------------------------------------------------------
+
+void UART_Init(void)
+{
+	SMOD0	= 0x0C;						// 8 Bits, no parity, 1 stop bit
+	SBRLH0	= 0xFF;	SBRLL0 = 0x98;		// 115200 Baud (from SYSCLK 48/2 MHz)
+	SBCON0	= 0x00;						// Disable BRGEN
+	SBCON0	= 0x43;						// Enable BRGEN (0x40), Prescaler = 1 (0x3)
+	SCON0	= 0x10;						// Enable receiver, clear interrupts
 }
 
 //-----------------------------------------------------------------------------
