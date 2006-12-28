@@ -126,11 +126,9 @@ void Handle_EP_HALT(void);				// Handle endpoint HALT status, except EP0
 void Standard_Device_Request(void);		// Standard Requests
 void Class_Request( void );				// Class specific request
 void Vendor_Request( void );			// Vendor request
-void CS_Set_Line_Coding_Complete(void);	// Completion routine for Set_Line_Coding
 
-void Handle_In1(void);					// Handle in packet on Endpoint 1
-void Handle_In2(void);					// Handle in packet on Endpoint 2
-void Handle_Out2(void);					// Handle out packet on Endpoint 2
+void Handle_In(void);					// Handle in packet on Endpoint 1
+void Handle_Out(void);					// Handle out packet on Endpoint 1/2
 
 // Used for multiple byte reads of Endpoint FIFOs
 void Fifo_Read (BYTE, BYTE, BYTE *);

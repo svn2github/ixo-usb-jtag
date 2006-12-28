@@ -45,6 +45,12 @@
 #include "USB_Descriptor.h"
 #include "USB_Standard_Requests.h"
 
+extern void UART_PutNibble(BYTE x);
+extern void UART_PutString(char *s);
+extern void UART_PutChar(char c);
+extern void UART_PutHex(BYTE x);
+
+
 //-----------------------------------------------------------------------------
 // Global Externs
 //-----------------------------------------------------------------------------
@@ -65,9 +71,8 @@ bit   send_eq_requested;				// flag that indicates that the data to send on TX
 
 // Holds the status for each endpoint
 BYTE Ep_Status0   = EP_IDLE;
-bit Ep_Status1    = EP_HALT;
-bit Ep_StatusIN2  = EP_HALT;
-bit Ep_StatusOUT2 = EP_HALT;
+bit Ep_StatusIN   = EP_HALT;
+bit Ep_StatusOUT  = EP_HALT;
 
 //-----------------------------------------------------------------------------
 // Interrupt Service Routines
@@ -101,7 +106,6 @@ void Usb_ISR(void) interrupt 8			// Top-level USB ISR
 		if (bCommon & rbSOF)			// SOF interrupt
 		{
 			Handle_EP_HALT();
-			Handle_In1();				// Handle IN1 EP (Notification)
 		}
 		if (bIn & rbEP0)				// Handle Setup packet received
 		{								// or packet transmitted if Endpoint 0
@@ -149,9 +153,8 @@ void Usb_Reset(void)
 	USB_State = DEV_DEFAULT;			// Set device state to default
 
 	Ep_Status0 = EP_IDLE;				// Set default Endpoint Status
-	Ep_Status1 = EP_HALT;
-	Ep_StatusOUT2 = EP_HALT;
-	Ep_StatusIN2  = EP_HALT;
+	Ep_StatusIN  = EP_HALT;
+	Ep_StatusOUT = EP_HALT;
 }
 
 //-----------------------------------------------------------------------------
@@ -199,6 +202,11 @@ void Handle_Setup(void)
 			Setup.wIndex.i  = ((UINT)Setup.wIndex.c[1]  << 8) | Setup.wIndex.c[0];
 			Setup.wLength.i = ((UINT)Setup.wLength.c[1] << 8) | Setup.wLength.c[0];
 #endif // end of BIG_ENDIAN
+
+			UART_PutString("SETUP:");
+			UART_PutHex( Setup.bmRequestType );
+			UART_PutHex( Setup.bRequest );
+			UART_PutString("\r\n");
 
 			setup_handled = FALSE;
 			switch ( Setup.bmRequestType & DRT_MASK )	// Device Request Type
@@ -285,10 +293,6 @@ void Handle_Setup(void)
 				DataSize = 0;
 				ControlReg |= rbDATAEND;	// Signal end of data stage
 				Ep_Status0 = EP_IDLE;		// Set Endpoint to IDLE
-
-				if (   (Setup.bRequest == SET_LINE_CODING)		// completion routine for Set_Line_Coding
-					&& (Setup.bmRequestType == OUT_CL_INTERFACE) )
-					CS_Set_Line_Coding_Complete();
 			}
 
 			POLL_WRITE_BYTE ( E0CSR, ControlReg );
@@ -386,7 +390,7 @@ void Handle_EP_HALT(void)
 	// IN EP1
 	POLL_WRITE_BYTE(INDEX, 1);				// Set index to endpoint 1 registers
 	POLL_READ_BYTE(EINCSR1, ControlReg);	// Read contol register for EP
-	if (Ep_Status1 == EP_HALT)				// If endpoint is currently halted, send a stall
+	if (Ep_StatusIN == EP_HALT)			// If endpoint is currently halted, send a stall
 	{
 		POLL_WRITE_BYTE(EINCSR1, rbInSDSTL);
 	}
@@ -398,24 +402,12 @@ void Handle_EP_HALT(void)
 		}
 	}
 
-	// IN EP2
+	// OUT EP
+#if !defined(C8051F326_H)
 	POLL_WRITE_BYTE(INDEX, 2);				// Set index to endpoint 2 registers
-	POLL_READ_BYTE(EINCSR1, ControlReg);	// Read contol register for EP
-	if (Ep_StatusIN2 == EP_HALT)			// If endpoint is currently halted, send a stall
-	{
-		POLL_WRITE_BYTE(EINCSR1, rbInSDSTL);
-	}
-	else
-	{
-		if (ControlReg & rbInSTSTL)			// Clear sent stall if last packet returned a stall
-		{
-			POLL_WRITE_BYTE(EINCSR1, 0);
-		}
-	}
-
-	// OUT EP2
+#endif
 	POLL_READ_BYTE(EOUTCSR1, ControlReg);	// Read contol register for EP
-	if (Ep_StatusOUT2 == EP_HALT)			// If endpoint is halted, send a stall
+	if (Ep_StatusOUT == EP_HALT)			// If endpoint is halted, send a stall
 	{
 		POLL_WRITE_BYTE(EOUTCSR1, rbOutSDSTL | rbOutOPRDY);	// preserve OPRDY bit
 	}
@@ -426,6 +418,7 @@ void Handle_EP_HALT(void)
 			POLL_WRITE_BYTE(EOUTCSR1, rbOutOPRDY);			// preserve OPRDY bit
 		}
 	}
+
 }
 
 //-----------------------------------------------------------------------------

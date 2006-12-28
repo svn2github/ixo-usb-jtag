@@ -10,7 +10,7 @@ default: $(MAIN).hex
 .c.rel:
 	$(CC) -c $(CFLAGS) -o $@ $<
 
-$(MAIN).hex: $(MAIN).rel USB_Descriptor.rel USB_ISR.rel USB_Standard_Requests.rel USB_Class_Requests.rel USB_CDC_UART.rel SDCC_FIFO_RW.lib
+$(MAIN).hex: $(MAIN).rel USB_Descriptor.rel USB_ISR.rel USB_Standard_Requests.rel USB_Class_Requests.rel SDCC_FIFO_RW.lib
 	$(CC) $(CFLAGS) -o$@ $+
 
 $(MAIN).rel: $(MAIN).c

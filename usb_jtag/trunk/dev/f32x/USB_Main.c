@@ -51,7 +51,6 @@
 #include "USB_Main.h"
 #include "USB_Descriptor.h"
 #include "USB_Standard_Requests.h"
-#include "USB_CDC_UART.h"
 
 //-----------------------------------------------------------------------------
 // 16-bit SFR Definitions for 'F32x
@@ -73,29 +72,12 @@ sfr16 TMR2		= 0xcc;					// Timer2 counter
 #define USE_ADC 0
 
 #if defined KEIL
-
 sbit Led1 = P2^2;						// LED='1' means ON
 sbit Led2 = P2^3;
-
-#endif // KEIL
-
-#if defined SDCC
-
+#elif defined SDCC
 #define Led1   P2_2						// LED='1' means ON
 #define Led2   P2_3
-
 #endif // SDCC
-
-#define Sw1 0x01						// These are the port2 bits for Sw1
-#define Sw2 0x02						// and Sw2 on the development board
-
-BYTE Switch1State = 0;					// Indicate status of switch
-BYTE Switch2State = 0;					// starting at 0 == off
-
-BYTE Toggle1 = 0;						// Variable to make sure each button
-BYTE Toggle2 = 0;						// press and release toggles switch
-
-volatile bit switch_changed = FALSE;
 
 #if USE_ADC
 BYTE Potentiometer = 0x00;				// Last read potentiometer value
@@ -174,11 +156,15 @@ void UART_PutChar(char c)
 
 void UART_PutNibble(BYTE x)
 {
-	UART_PutChar(x+(x<10)?'0':('A'-'0'));
+	if(x<10)
+		UART_PutChar(x+'0');
+	else
+		UART_PutChar(x+'A'-10);
 }
 
 void UART_PutHex(BYTE x)
 {
+	UART_PutChar(' ');
 	UART_PutNibble(x>>4);
 	UART_PutNibble(x&15);
 }
@@ -194,14 +180,8 @@ void UART_PutString(char *s)
 //-----------------------------------------------------------------------------
 void main(void)
 {
-//	BYTE Count;
-	BYTE dt;
-	BYTE line_state;
-
 #if defined KEIL
-
 	PCA0MD &= ~0x40;					// Disable Watchdog timer temporarily
-
 #endif // KEIL
 
 	Sysclk_Init();						// Initialize oscillator
@@ -212,9 +192,6 @@ void main(void)
 #if USE_ADC
 	Adc_Init();							// Initialize ADC
 #endif
-	Flush_COMbuffers();					// Initialize COM ring buffer
-	Led1 = FALSE;
-	Led2 = FALSE;
 
 #if USE_ADC
 	// Set initial values of In_Packet and Out_Packet to zero
@@ -235,27 +212,8 @@ void main(void)
 
 	while (1)
 	{
-		Handle_In2();					// Poll IN/OUT EP2 and handle transaction
-		Handle_Out2();
-
-		if ( switch_changed )			// Reflect the switch status to DSR and CTS
-		{
-			switch_changed = FALSE;
-
-			line_state = 0;
-			if ( Switch1State ) line_state |= CDC_DSR;
-			if ( Switch2State ) line_state |= CDC_CTS;
-			Update_Line_State( line_state );
-		}
-
-		while (TXReady && RXReady)		// loop back TX to RX
-		{
-			dt = COMGetByte();
-			COMPutByte( dt );
-		}
-
-		Led1 = uart_DTR;				// output line status
-		Led2 = uart_RTS;
+		Handle_In();					// Poll IN/OUT EP2 and handle transaction
+		Handle_Out();
 	}
 }
 
@@ -451,36 +409,13 @@ void Adc_Init(void)
 // Timer2_ISR
 //-----------------------------------------------------------------------------
 //
-// Called when timer 2 overflows, check to see if switch is pressed,
-// then watch for release.
+// Called when timer 2 overflows
 //
 //-----------------------------------------------------------------------------
 
 void Timer2_ISR(void) interrupt 5
 {
 	TF2H = 0;							// Clear Timer2 interrupt flag
-
-	if (!(P2 & Sw1))					// Check for switch #1 pressed
-	{
-		if (Toggle1 == 0)				// Toggle is used to debounce switch
-		{								// so that one press and release will
-			Switch1State = ~Switch1State; // toggle the state of the switch sent
-			Toggle1 = 1;				// to the host
-			switch_changed = TRUE;
-		}
-	}
-	else Toggle1 = 0;					// Reset toggle variable
-
-	if (!(P2 & Sw2))					// Same as above, but Switch2
-	{
-		if (Toggle2 == 0)
-		{
-			Switch2State = ~Switch2State;
-			Toggle2 = 1;
-			switch_changed = TRUE;
-		}
-	}
-	else Toggle2 = 0;
 }
 #endif
 

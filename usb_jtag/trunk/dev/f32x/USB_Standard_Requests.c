@@ -44,6 +44,12 @@
 #include "USB_Descriptor.h"
 #include "USB_Standard_Requests.h"
 
+extern void UART_PutNibble(BYTE x);
+extern void UART_PutString(char *s);
+extern void UART_PutChar(char c);
+extern void UART_PutHex(BYTE x);
+
+
 //-----------------------------------------------------------------------------
 // Externs
 //-----------------------------------------------------------------------------
@@ -60,9 +66,8 @@ extern UINT  DataSize;
 extern BYTE* DataPtr;
 
 extern BYTE Ep_Status0;					// Contains status bytes for EP 0-2
-extern bit Ep_Status1;
-extern bit Ep_StatusIN2;
-extern bit Ep_StatusOUT2;
+extern bit Ep_StatusIN;
+extern bit Ep_StatusOUT;
 
 extern BYTE USB_State;					// Determines current usb device state
 
@@ -154,6 +159,7 @@ void Get_Status(void)
 
 			case IN_INTERFACE:				// See if recipient was interface						
 				// Only valid if device is configured and existing interface index
+				UART_PutString("INI "); UART_PutHex(Setup.wIndex.i); UART_PutString("\r\n");
 				if ( (USB_State == DEV_CONFIGURED) && (Setup.wIndex.i < DSC_NUM_INTERFACE) )												
 				{
 					// Status packet always returns 0x00
@@ -164,14 +170,16 @@ void Get_Status(void)
 
 			case IN_ENDPOINT:				// See if recipient was an endpoint							
 				// Make sure device is configured and index msb = 0x00
+				UART_PutString("INE "); UART_PutHex(Setup.wIndex.c[MSB]); UART_PutString("\r\n");
 				if ((USB_State == DEV_CONFIGURED) && (Setup.wIndex.c[MSB] == 0) )
 				{
 					aStatus = EP_IDLE;
 					switch ( Setup.wIndex.c[LSB] )
 					{
-						case IN_EP1:	aStatus = Ep_Status1;		setup_handled = TRUE;	break;		
-						case OUT_EP2:	aStatus = Ep_StatusOUT2;	setup_handled = TRUE;	break;
-						case IN_EP2:	aStatus = Ep_StatusIN2;		setup_handled = TRUE;	break;
+						case IN_EP1:	UART_PutString("E1I\r\n"); aStatus = Ep_StatusIN;		setup_handled = TRUE;	break;		
+						case IN_EP2:	UART_PutString("E2I\r\n"); aStatus = Ep_StatusIN;		setup_handled = TRUE;	break;		
+						case OUT_EP1:	UART_PutString("E1O\r\n"); aStatus = Ep_StatusOUT;		setup_handled = TRUE;	break;
+						case OUT_EP2:	UART_PutString("E2O\r\n"); aStatus = Ep_StatusOUT;		setup_handled = TRUE;	break;
 						default:															break;
 					}
 					if (aStatus == EP_HALT)
@@ -232,25 +240,38 @@ void Clear_Feature()
 					switch ( Setup.wIndex.c[LSB] )
 					{
 						case IN_EP1:
+							UART_PutString("CF_IN_EP1\r\n");
 							POLL_WRITE_BYTE (INDEX, 1);			// Clear feature endpoint 1 halt
 							POLL_WRITE_BYTE (EINCSR1, rbInCLRDT);	// clear data toggle, SDSTL, STSTL
-							Ep_Status1 = EP_IDLE;				// Set endpoint 1 status back to idle
+							Ep_StatusIN = EP_IDLE;				// Set endpoint 1 status back to idle
 							setup_handled = TRUE;
 							break;
 
+						case OUT_EP1:
+							UART_PutString("CF_OUT_EP1\r\n");
+							POLL_WRITE_BYTE (INDEX, 1);			// Clear feature endpoint 2 halt
+							POLL_WRITE_BYTE (EOUTCSR1, rbOutCLRDT); // clear data toggle, SDSTL, STSTL
+							Ep_StatusOUT = EP_IDLE;				// Set endpoint 2 status back to idle
+							setup_handled = TRUE;
+							break;
+
+#if !defined(C8051F326_H)
 						case OUT_EP2:
+							UART_PutString("CF_OUT_EP2\r\n");
 							POLL_WRITE_BYTE (INDEX, 2);			// Clear feature endpoint 2 halt
 							POLL_WRITE_BYTE (EOUTCSR1, rbOutCLRDT); // clear data toggle, SDSTL, STSTL
-							Ep_StatusOUT2 = EP_IDLE;			// Set endpoint 2 status back to idle
+							Ep_StatusOUT = EP_IDLE;				// Set endpoint 2 status back to idle
 							setup_handled = TRUE;
 							break;
 
 						case IN_EP2:
+							UART_PutString("CF_IN_EP2\r\n");
 							POLL_WRITE_BYTE (INDEX, 2);			// Clear feature endpoint 2 halt
 							POLL_WRITE_BYTE (EINCSR1, rbInCLRDT);	// clear data toggle, SDSTL, STSTL
 							Ep_StatusIN2 = EP_IDLE;				// Set endpoint 2 status back to idle
 							setup_handled = TRUE;
 							break;
+#endif
 
 						default:
 							break;
@@ -298,17 +319,26 @@ void Set_Feature(void)
 					switch ( Setup.wIndex.c[LSB] )
 					{
 						case IN_EP1:
-							Ep_Status1 = EP_HALT;				// Set endpoint 1 status to halt
-							setup_handled = TRUE;
-							break;
-
-						case OUT_EP2:
-							Ep_StatusOUT2 = EP_HALT;			// Set endpoint 2 status to halt
+							UART_PutString("SF_IN_EP1\r\n");
+							Ep_StatusIN = EP_HALT;				// Set endpoint 1 status to halt
 							setup_handled = TRUE;
 							break;
 
 						case IN_EP2:
-							Ep_StatusIN2 = EP_HALT;				// Set endpoint 2 status to halt
+							UART_PutString("SF_IN_EP2\r\n");
+							Ep_StatusIN = EP_HALT;				// Set endpoint 2 status to halt
+							setup_handled = TRUE;
+							break;
+
+						case OUT_EP1:
+							UART_PutString("SF_OUT_EP1\r\n");
+							Ep_StatusOUT = EP_HALT;			// Set endpoint 2 status to halt
+							setup_handled = TRUE;
+							break;
+
+						case OUT_EP2:
+							UART_PutString("SF_OUT_EP2\r\n");
+							Ep_StatusOUT = EP_HALT;			// Set endpoint 2 status to halt
 							setup_handled = TRUE;
 							break;
 
@@ -481,28 +511,31 @@ void Set_Configuration(void)
 			// When the device has any alternate interface, initialize these registers in
 			// Set_Interface according to selected interface
 
+			UART_PutString("Set_Config OK\r\n");
+#if defined(C8051F326_H)
 			POLL_WRITE_BYTE(INDEX, 1);				// Select EP1
-			POLL_WRITE_BYTE(EINCSR2, rbInDIRSEL);	// Set DIRSEL to indicate endpoint 1 is IN
-			POLL_WRITE_BYTE(EINCSR1, rbInCLRDT);	// clear data toggle
-			Ep_Status1 = EP_IDLE;					// Set endpoint status to idle (enabled)
-
-			cs_Line_State_Update = TRUE;			// Send current line status
-			Handle_In1();
-
-			POLL_WRITE_BYTE(INDEX, 2);				// Select EP2
+			POLL_WRITE_BYTE(EINCSR2, 0);			// no double buffer (64 bytes max, otherwise only 32)
+			POLL_WRITE_BYTE(EINCSR1, rbInCLRDT);	// clear data toggle, SDSTL, STSTL
+			POLL_WRITE_BYTE(EOUTCSR2, rbOutDBOEN);	// double buffer (2x64 bytes)
+			POLL_WRITE_BYTE(EOUTCSR1, rbOutCLRDT);	// clear data toggle
+#else
+			POLL_WRITE_BYTE(INDEX, 1);				// Select EP1
 			POLL_WRITE_BYTE(EINCSR2, rbInDBIEN | rbInSPLIT);	// split, double buffer
 			POLL_WRITE_BYTE(EINCSR1, rbInCLRDT);	// clear data toggle, SDSTL, STSTL
+
+			POLL_WRITE_BYTE(INDEX, 2);				// Select EP2
 			POLL_WRITE_BYTE(EOUTCSR2, rbOutDBOEN);	// double buffer
 			POLL_WRITE_BYTE(EOUTCSR1, rbOutCLRDT);	// clear data toggle
-			Ep_StatusOUT2 = EP_IDLE;
-			Ep_StatusIN2 = EP_IDLE;
+#endif
+			Ep_StatusIN = EP_IDLE;
+			Ep_StatusOUT = EP_IDLE;
 		}
 		else
 		{
+			UART_PutString("Set_Config NAK\r\n");
 			USB_State = DEV_ADDRESS;				// Unconfigures device by setting state to
-			Ep_Status1 = EP_HALT;					// address, and changing endpoint 1 and 2
-			Ep_StatusOUT2 = EP_HALT;					// status to halt
-			Ep_StatusIN2  = EP_HALT;
+			Ep_StatusIN = EP_HALT;					// address, and changing endpoint 
+			Ep_StatusOUT = EP_HALT;					// status to halt
 		}
 
 		setup_handled = TRUE;
