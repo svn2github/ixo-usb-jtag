@@ -16,7 +16,7 @@ WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
 A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program as file "COPYING"; if not, write to the Free Software 
+along with this program as file "copying.txt"; if not, write to the Free Software 
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301  USA
 
 -----------------------------------------------------------------------------
@@ -39,7 +39,7 @@ could make use of an original Altera device as well!
 
 FILES: Beside this README, this archive contains the following files:
 
- - COPYING: The text of the GNU Public License (GPL).
+ - copying.txt: The text of the GNU Public License (GPL).
  - device/fx2: Firmware for usb_jtag based on Cypress FX2
  - device/cpld: CPLD logic for usb_jtag with FT245BM + CPLD
  - host/eecksum: Code to compute a valid checksum for FT245BM EEPROM emulation

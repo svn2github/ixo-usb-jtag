@@ -37,6 +37,13 @@ As is, the code assumes the following pin assignment:
 
 Other assignments are possible; you'll have to adapt the code in usbjtag.c and shift.a51.
 
+NB, the "Xilinx Platform Cable USB" is based on a FX2 chip. In theory, it is possible to
+write code for that adapter to make it compatible with my adapter drivers on the fly
+(and reversible). In practice however, it's complicated because Xilinx attaches
+an additional CPLD to the FX2 for high-speed serial/parallel conversion and you
+would have to find out how to communicate with that CPLD first. Not impossible,
+but I'm not finished with it yet...
+
 Changes since initial release on 2006-04-23:
   - added this readme.txt
   - reorganized my project folder: diff is now created from Subversion repository
