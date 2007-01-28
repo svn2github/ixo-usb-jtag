@@ -92,9 +92,9 @@ Tconfiguration_desc_set code ConfigDescSet =
 	0x00,				// bInterfaceNumber
 	0x00,				// bAlternateSetting
 	0x02,				// bNumEndpoints
-	0xFF,				// bInterfaceClass (Communication Class)
-	0xFF,				// bInterfaceSubClass (Abstract Control Model)
-	0xFF,				// bInterfaceProcotol (V.25ter, Common AT commands)
+	0xFF,				// bInterfaceClass
+	0xFF,				// bInterfaceSubClass
+	0xFF,				// bInterfaceProcotol
 	0x02				// iInterface
   },
   {					// Endpoint IN
@@ -108,9 +108,9 @@ Tconfiguration_desc_set code ConfigDescSet =
   {					// Endpoint OUT
 	sizeof(Tendpoint_descriptor),	// bLength
 	DSC_TYPE_ENDPOINT,	// bDescriptorType
-	OUT_EP1,			// bEndpointAddress
+	OUT_EP2,			// bEndpointAddress
 	DSC_EP_BULK,		// bmAttributes
-	LE( EP1_PACKET_SIZE ), // MaxPacketSize
+	LE( EP2_PACKET_SIZE ), // MaxPacketSize
 	0					// bInterval
   }
 

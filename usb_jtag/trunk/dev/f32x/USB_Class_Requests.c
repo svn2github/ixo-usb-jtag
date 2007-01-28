@@ -221,7 +221,9 @@ void Handle_In( void )
 //-----------------------------------------------------------------------------
 
 #if defined(C8051F326_H)
- #define OUT_EP_INDEX 1
+ // #define OUT_EP_INDEX 1
+ // #define OUT_FIFO_ADDR FIFO_EP1
+ #define OUT_EP_INDEX 2
  #define OUT_FIFO_ADDR FIFO_EP1
 #else
  #define OUT_EP_INDEX 2
