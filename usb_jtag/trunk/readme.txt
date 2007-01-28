@@ -26,14 +26,17 @@ device that can be used exactly like an "Altera USB Blaster". I have only
 included code here that is purely my own work or taken from Cypress library
 for the FX2 firmware. I do not include any copy of Altera code or data, such as
 the content of the EEPROM that configures the USB controller of their product
-(containing USB vendor and product ID and some more data). But that would be
-required if you want something compatible with their software. 
+(containing USB vendor and product ID and some more data). But you need at least
+the correct IDs in the EEPROM to make it compatible with their software. 
 
 Please do not ask me about such data. The code presented here is interesting
 enough even if used without Altera software. If you include support for this
 device in your host software, please let me know, so I can mention it in this
 README. And please be so kind to make your software compatible enough so it
 could make use of an original Altera device as well!
+
+Quartus, SignalTap and USB-Blaster are trademarks of Altera Corporation.
+ChipScope is a trademark of Xilinx Inc.
 
 -----------------------------------------------------------------------------
 
@@ -52,12 +55,12 @@ information about purpose, usage and history.
 
 -----------------------------------------------------------------------------
 
-HISTORY: In my company, we just received first samples of a new hardware design
-as a base for upcoming products; two major components of this design being a
-Cypress EZ-USB FX2 USB controller and an Altera Cyclone EP1C12 FPGA. The FX2
-implements the USB interface of the product; its first task after booting is to
-configure the FPGA. The FPGA configuration data is sent from the USB host to
-the FX2 and then via JTAG to the FPGA.
+HISTORY: In my company, in 2006 we received first samples of a new hardware
+design as a base for upcoming products; two major components of this design
+being a Cypress EZ-USB FX2 USB controller and an Altera Cyclone EP1C12 FPGA.
+The FX2 implements the USB interface of the product; its first task after
+booting is to configure the FPGA. The FPGA configuration data is sent from the
+USB host to the FX2 and then via JTAG to the FPGA.
 
 I had the idea to make the FX2 code less specific, i.e. turn it into a
 general-purpose JTAG interface and move all the code specific to FPGA
@@ -73,7 +76,20 @@ behave similar to their device.
 
 -----------------------------------------------------------------------------
 
-COMMON ISSUES: I've received some mails from others who used my logic with
+THANKS: After I released the first CPLD and FX2 code, Antti Lukats (xilant.com)
+was so kind to reserve an ID for my project, 0x16C0 / 0x06AD.  Thanks Antti!
+
+Jean from fpga4fun.com was the first who tried the FX2 code "outside my lab"
+and kept trying until he succeeded. Thanks for trying and reporting, Jean!
+
+There is an ongoing discussion at http://www.edaboard.com/ftopic114946.html
+with valuable discussion and info from the past. Whenever possible, I check
+there for new postings and try to answer questions. Thanks to all members
+who contributed (and do so in future) there!
+
+-----------------------------------------------------------------------------
+
+COMMON ISSUES: I received a number of mails from others who used my logic with
 varying success. Following are some general tips.
 
 If it works "partially" for you, "sometimes" or "it programs the device, but
@@ -94,10 +110,6 @@ The cable between CPLD and target should not exceed 10 cm in length.
 
 If you want to debug the CPLD logic, you could load jtag_logic into a larger
 FPGA and embed SignalTap or ChipScope to watch what's happening. 
-
-There is an ongoing discussion at http://www.edaboard.com/ftopic114946.html
-with valuable discussion and info from the past. Whenever possible, I check
-there for new postings and try to answer questions.
 
 -----------------------------------------------------------------------------
 
