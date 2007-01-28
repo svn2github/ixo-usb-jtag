@@ -41,8 +41,8 @@ DeviceDscr:
       db   00H               ;; Device sub-class
       db   00H               ;; Device sub-sub-class
       db   40H               ;; Maximum packet size
-      dw   00000H            ;; Vendor ID
-      dw   00000H            ;; Product ID
+      dw   016C0H            ;; Vendor ID
+      dw   006ADH            ;; Product ID
       dw   0004H             ;; Product version ID (4.00)
       db   1                 ;; Manufacturer string index
       db   2                 ;; Product string index
@@ -153,12 +153,12 @@ StringDscr0End:
 StringDscr1:   
       db   StringDscr1End-StringDscr1      ;; String descriptor length
       db   DSCR_STRING
-      db   'V',00
-      db   'e',00
-      db   'n',00
-      db   'd',00
+      db   'i',00
+      db   'x',00
       db   'o',00
-      db   'r',00
+      db   '.',00
+      db   'd',00
+      db   'e',00
 StringDscr1End:
 
 StringDscr2:   
