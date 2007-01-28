@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <ftdi.h>
 #include <stdint.h>
+#include <string.h>
 
 struct ftdi_context fc;
 
@@ -54,8 +55,29 @@ int eeprom_test(void)
 
 int jtag_test(void)
 {
-  printf("=== JTAG test ===\n  not implemented yet\n");
-  return 0;
+  int n;
+  unsigned char buf[64];
+
+  printf("=== JTAG test ===\n");
+
+  memset(buf, 0, 64); // ensure bit bang mode in "CPLD"
+
+#if 1
+  n = ftdi_write_data(&fc, buf, 64);
+  printf("n = %d\n", n);
+  if(n < 0) return dev_error("ftdi_write_data(64 zeros) failed");
+
+  buf[0] = 0x33;
+  n = ftdi_write_data(&fc, buf, 1);
+  printf("n = %d\n", n);
+  if(n < 0) return dev_error("ftdi_write_data(0x33) failed");
+#endif
+
+#if 0
+  n = ftdi_read_data(&fc, buf, 4);
+  printf("n = %d, buf=%02X %02X %02X %02X\n", n, buf[0], buf[1], buf[2], buf[3]);
+  if(n < 0) (void)dev_error("ftdi_read_data failed");
+#endif
 }
 
 int asmi_test(void)
@@ -67,6 +89,11 @@ int asmi_test(void)
 int main(int argc, char *argv[])
 {
   ftdi_init(&fc);
+#if 0
+#warning using nonstandard ep numbers
+  fc.in_ep = 0x01;
+  fc.out_ep = 0x81;
+#endif
 
   atexit(dev_deinit);
 
@@ -87,12 +114,31 @@ int main(int argc, char *argv[])
 
   if(eeprom_test() < 0) return -1;
 
-  if(ftdi_enable_bitbang(&fc, 0xFF) < 0)
+  if(ftdi_disable_bitbang(&fc) < 0)
   {
-    return dev_error("Can't enable bitbang"); 
+    return dev_error("unable to disable bitbang mode"); 
   };
 
-  atexit(dev_reset);
+  if (ftdi_set_latency_timer(&fc, 2) < 0)
+  {
+    return dev_error("unable to set latency timer");
+  };
+
+  {
+    unsigned  char latency_timer;
+    if (ftdi_get_latency_timer(&fc, &latency_timer) < 0)
+    {
+      return dev_error("unable to get latency timer");
+    }
+    printf("current latency timer: %i\n", latency_timer);
+  };
+
+  /* TODO: libftdi's ftdi_set_baudrate chokes on high rates, use lowlevel
+   * usb function instead! And additionally allow user to throttle. */
+  if(ftdi_set_baudrate(&fc, 3000000/4)<0)
+  {
+    return dev_error("unable to set baud rate to max");
+  };
 
   if(jtag_test() < 0) return -1;
   if(asmi_test() < 0) return -1;
