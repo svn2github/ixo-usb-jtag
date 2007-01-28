@@ -90,15 +90,14 @@ Whenever I experienced problems, it was due to wrong connections, bad
 pullup/pulldown resistors on the target JTAG interface, or mismatch between
 logic levels (3.3/5 V) of CPLD vs. target JTAG interface.
 
-For the CPLD variant I actually used a EPM7064SLC44-10, because I needed 5V
-logic interface. If you want to attach your cable directly to a device with
-3.3V logic you should choose another CPLD, or add a (fast) level
-translator/driver between the devices.
-
 The cable between CPLD and target should not exceed 10 cm in length.
 
 If you want to debug the CPLD logic, you could load jtag_logic into a larger
 FPGA and embed SignalTap or ChipScope to watch what's happening. 
+
+There is an ongoing discussion at http://www.edaboard.com/ftopic114946.html
+with valuable discussion and info from the past. Whenever possible, I check
+there for new postings and try to answer questions.
 
 -----------------------------------------------------------------------------
 

@@ -25,13 +25,16 @@ The Quartus assignments file epm7064.qsf here lists a possible pin assignment,
 valid for the PLCC-44 variant of EPM7064. For testing, I just wired a FT245
 module (as it is available directly from FTDI and several distributors)
 directly to an EPM7064, and added only a few external resistors in series with
-the JTAG I/O pins; I didn't draw detailed schematics yet because the
-connections can be completely taken from FTDI datasheets.  For more
+the JTAG I/O pins. I didn't draw detailed schematics yet because the
+connections can be completely taken from FTDI datasheets. 
+
+To match the logic voltage levels of my specific target, I chose an
+EPM7064SLC44-10 with 5V I/O. There are others that use 3.3V etc.  For more
 flexibility, you should add level shifter and some protection circuit on the
 JTAG I/O. 
 
 Please note that this CPLD code is NOT the same as in an Altera USB-Blaster,
-but behaves very similar. It's very probable that logic of real USB-Blaster 
+it just behaves very similar. It's very probable that logic of real USB-Blaster
 performs better than this design.
 
 Changes since initial release on 2006-04-23:

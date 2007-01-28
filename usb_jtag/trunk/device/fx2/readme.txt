@@ -37,6 +37,8 @@ As is, the code assumes the following pin assignment:
 
 Other assignments are possible; you'll have to adapt the code in usbjtag.c and shift.a51.
 
+The WAKEUP pin should be high for the re-numeration to work reliably (thanks Jean/fpga4fun!)
+
 NB, the "Xilinx Platform Cable USB" is based on a FX2 chip. In theory, it is possible to
 write code for that adapter to make it compatible with my adapter drivers on the fly
 (and reversible). In practice however, it's complicated because Xilinx attaches
