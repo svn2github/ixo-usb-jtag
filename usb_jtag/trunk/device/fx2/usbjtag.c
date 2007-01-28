@@ -193,27 +193,40 @@ void OutputByte(BYTE d)
 // shift mode. It starts in Bit banging mode. While bytes are received
 // from the host on EP2OUT, each byte B of them is processed as follows:
 //
+// Please note: nCE, nCS, LED pins and DATAOUT actually aren't supported here.
+// Support for these would be required for AS/PS mode and isn't too complicated,
+// but I haven't had the time yet.
+//
 // Bit banging mode:
 // 
 //   1. Remember bit 6 (0x40) in B as the "Read bit".
+//
 //   2. If bit 7 (0x40) is set, switch to Byte shift mode for the coming
 //      X bytes ( X := B & 0x3F ), and don't do anything else now.
+//
 //    3. Otherwise, set the JTAG signals as follows:
-//        TCK high if bit 0 was set (0x01), otherwise low
-//        TMS high if bit 1 was set (0x02), otherwise low
-//        TDI high if bit 4 was set (0x10), otherwise low
-//    4. If "Read bit" (0x40) was set, record the state of
-//        TDO pin and put it as a byte (2|TDO) in the output 
-//        FIFO _to_ the host.
+//        TCK/DCLK high if bit 0 was set (0x01), otherwise low
+//        TMS/nCONFIG high if bit 1 was set (0x02), otherwise low
+//        nCE high if bit 2 was set (0x04), otherwise low
+//        nCS high if bit 3 was set (0x08), otherwise low
+//        TDI/ASDI/DATA0 high if bit 4 was set (0x10), otherwise low
+//        Output Enable/LED active if bit 5 was set (0x20), otherwise low
+//
+//    4. If "Read bit" (0x40) was set, record the state of TDO(CONF_DONE) and
+//        DATAOUT(nSTATUS) pins and put it as a byte ((DATAOUT<<1)|TDO) in the
+//        output FIFO _to_ the host (the code here reads TDO only and assumes
+//        DATAOUT=1)
 //
 // Byte shift mode:
 //
 //   1. Load shift register with byte from host
+//
 //   2. Do 8 times (i.e. for each bit of the byte; implemented in shift.a51)
-//      2a) Carry bit := TDO
+//      2a) if nCS=1, set carry bit from TDO, else set carry bit from DATAOUT
 //      2b) Rotate shift register through carry bit
 //      2c) TDI := Carry bit
 //      2d) Raise TCK, then lower TCK.
+//
 //   3. If "Read bit" was set when switching into byte shift mode,
 //      record the shift register content and put it into the FIFO
 //      _to_ the host.
