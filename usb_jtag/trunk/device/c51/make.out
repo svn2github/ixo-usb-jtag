@@ -1,0 +1,89 @@
+Making all in include
+make[1]: Betrete Verzeichnis '/home/kawk/work/usb_jtag/xtern/gnuradio-3.0.2/usrp/firmware/include'
+make[1]: Für das Ziel »all« ist nichts zu tun.
+make[1]: Verlasse Verzeichnis '/home/kawk/work/usb_jtag/xtern/gnuradio-3.0.2/usrp/firmware/include'
+Making all in lib
+make[1]: Betrete Verzeichnis '/home/kawk/work/usb_jtag/xtern/gnuradio-3.0.2/usrp/firmware/lib'
+sdcc -mmcs51 --no-xinit-opt -I../../../usrp/firmware/include  -c delay.c -o delay.rel
+sdcc -mmcs51 --no-xinit-opt -I../../../usrp/firmware/include  -c fx2utils.c -o fx2utils.rel
+sdcc -mmcs51 --no-xinit-opt -I../../../usrp/firmware/include  -c i2c.c -o i2c.rel
+sdcc -mmcs51 --no-xinit-opt -I../../../usrp/firmware/include  -c isr.c -o isr.rel
+isr.c:73: warning 94: comparison is always false due to limited range of data type
+sdcc -mmcs51 --no-xinit-opt -I../../../usrp/firmware/include  -c timer.c -o timer.rel
+timer.c:45: warning 158: overflow in implicit constant conversion
+sdcc -mmcs51 --no-xinit-opt -I../../../usrp/firmware/include  -c usb_common.c -o usb_common.rel
+usb_common.c:216: warning 126: unreachable code
+usb_common.c:225: warning 126: unreachable code
+usb_common.c:184: warning 110: conditional flow changed by optimizer: so said EVELYN the modified DOG
+usb_common.c:314: warning 110: conditional flow changed by optimizer: so said EVELYN the modified DOG
+rm -f libfx2.lib
+touch libfx2.lib
+for obj in delay.rel fx2utils.rel i2c.rel isr.rel timer.rel usb_common.rel; do basename $obj .rel >> libfx2.lib ; done
+make[1]: Verlasse Verzeichnis '/home/kawk/work/usb_jtag/xtern/gnuradio-3.0.2/usrp/firmware/lib'
+Making all in src
+make[1]: Betrete Verzeichnis '/home/kawk/work/usb_jtag/xtern/gnuradio-3.0.2/usrp/firmware/src'
+Making all in common
+make[2]: Betrete Verzeichnis '/home/kawk/work/usb_jtag/xtern/gnuradio-3.0.2/usrp/firmware/src/common'
+srcdir=. ./edit-gpif ./gpif.c usrp_gpif.c usrp_gpif_inline.h
+make[2]: Verlasse Verzeichnis '/home/kawk/work/usb_jtag/xtern/gnuradio-3.0.2/usrp/firmware/src/common'
+Making all in usrp2
+make[2]: Betrete Verzeichnis '/home/kawk/work/usb_jtag/xtern/gnuradio-3.0.2/usrp/firmware/src/usrp2'
+test -f `basename 'eeprom_boot.a51'` || ln -s 'eeprom_boot.a51' .
+test -f ../common/`basename 'eeprom_boot.a51'` -o \
+		\! -f `dirname 'eeprom_boot.a51'`/../common/`basename 'eeprom_boot.a51'` \
+		|| ln -s `dirname 'eeprom_boot.a51'`/../common/`basename 'eeprom_boot.a51'` ../common/.
+asx8051 -plosgff `basename 'eeprom_boot.a51'`
+sdcc -mmcs51 --no-xinit-opt -I../../../../usrp/firmware/include -I../../../../usrp/firmware/src/usrp2 -I../../../../usrp/firmware/src/common -I../../../../usrp/firmware/src/common -DHAVE_USRP2 \
+		-c -o eeprom_init.rel `test -f 'eeprom_init.c' || echo './'`eeprom_init.c
+test -f `basename '_startup.a51'` || ln -s '_startup.a51' .
+test -f ../common/`basename '_startup.a51'` -o \
+		\! -f `dirname '_startup.a51'`/../common/`basename '_startup.a51'` \
+		|| ln -s `dirname '_startup.a51'`/../common/`basename '_startup.a51'` ../common/.
+asx8051 -plosgff `basename '_startup.a51'`
+sdcc -mmcs51 --no-xinit-opt --code-loc 0x0000 --code-size 0x1800 --xram-loc 0x1800 --xram-size 0x0800 -Wl '-b USBDESCSEG = 0xE000' -L ../../lib libfx2.lib -o eeprom_boot.ihx eeprom_boot.rel eeprom_init.rel _startup.rel
+./../common/build_eeprom.py -r2 eeprom_boot.ihx > burn-usrp2-eeprom
+chmod +x burn-usrp2-eeprom
+./../common/build_eeprom.py -r4 eeprom_boot.ihx > burn-usrp4-eeprom
+chmod +x burn-usrp4-eeprom
+test -f `basename 'vectors.a51'` || ln -s 'vectors.a51' .
+test -f ../common/`basename 'vectors.a51'` -o \
+		\! -f `dirname 'vectors.a51'`/../common/`basename 'vectors.a51'` \
+		|| ln -s `dirname 'vectors.a51'`/../common/`basename 'vectors.a51'` ../common/.
+asx8051 -plosgff `basename 'vectors.a51'`
+srcdir=. ./edit-gpif ./gpif.c usrp_gpif.c usrp_gpif_inline.h
+sdcc -mmcs51 --no-xinit-opt -I../../../../usrp/firmware/include -I../../../../usrp/firmware/src/usrp2 -I../../../../usrp/firmware/src/common -I../../../../usrp/firmware/src/common -DHAVE_USRP2 \
+		-c -o usrp_main.rel `test -f 'usrp_main.c' || echo './'`usrp_main.c
+sdcc -mmcs51 --no-xinit-opt -I../../../../usrp/firmware/include -I../../../../usrp/firmware/src/usrp2 -I../../../../usrp/firmware/src/common -I../../../../usrp/firmware/src/common -DHAVE_USRP2 \
+		-c -o usrp_common.rel `test -f 'usrp_common.c' || echo './'`usrp_common.c
+sdcc -mmcs51 --no-xinit-opt -I../../../../usrp/firmware/include -I../../../../usrp/firmware/src/usrp2 -I../../../../usrp/firmware/src/common -I../../../../usrp/firmware/src/common -DHAVE_USRP2 \
+		-c -o board_specific.rel `test -f 'board_specific.c' || echo './'`board_specific.c
+board_specific.c:65: warning 85: in function set_sleep_bits unreferenced function argument : 'bits'
+board_specific.c:65: warning 85: in function set_sleep_bits unreferenced function argument : 'mask'
+sdcc -mmcs51 --no-xinit-opt -I../../../../usrp/firmware/include -I../../../../usrp/firmware/src/usrp2 -I../../../../usrp/firmware/src/common -I../../../../usrp/firmware/src/common -DHAVE_USRP2 \
+		-c -o fpga_load.rel `test -f 'fpga_load.c' || echo './'`fpga_load.c
+../common/fpga_load.c:139: warning 85: in function clock_out_config_byte unreferenced function argument : 'bits'
+../common/fpga_load.c:181: warning 126: unreachable code
+sdcc -mmcs51 --no-xinit-opt -I../../../../usrp/firmware/include -I../../../../usrp/firmware/src/usrp2 -I../../../../usrp/firmware/src/common -I../../../../usrp/firmware/src/common -DHAVE_USRP2 \
+		-c -o fpga_rev2.rel `test -f 'fpga_rev2.c' || echo './'`fpga_rev2.c
+sdcc -mmcs51 --no-xinit-opt -I../../../../usrp/firmware/include -I../../../../usrp/firmware/src/usrp2 -I../../../../usrp/firmware/src/common -I../../../../usrp/firmware/src/common -DHAVE_USRP2 \
+		-c -o init_gpif.rel `test -f 'init_gpif.c' || echo './'`init_gpif.c
+sdcc -mmcs51 --no-xinit-opt -I../../../../usrp/firmware/include -I../../../../usrp/firmware/src/usrp2 -I../../../../usrp/firmware/src/common -I../../../../usrp/firmware/src/common -DHAVE_USRP2 \
+		-c -o usrp_gpif.rel `test -f 'usrp_gpif.c' || echo './'`usrp_gpif.c
+test -f `basename 'usb_descriptors.a51'` || ln -s 'usb_descriptors.a51' .
+test -f ../common/`basename 'usb_descriptors.a51'` -o \
+		\! -f `dirname 'usb_descriptors.a51'`/../common/`basename 'usb_descriptors.a51'` \
+		|| ln -s `dirname 'usb_descriptors.a51'`/../common/`basename 'usb_descriptors.a51'` ../common/.
+asx8051 -plosgff `basename 'usb_descriptors.a51'`
+sdcc -mmcs51 --no-xinit-opt -I../../../../usrp/firmware/include -I../../../../usrp/firmware/src/usrp2 -I../../../../usrp/firmware/src/common -I../../../../usrp/firmware/src/common -DHAVE_USRP2 \
+		-c -o spi.rel `test -f 'spi.c' || echo './'`spi.c
+sdcc -mmcs51 --no-xinit-opt -I../../../../usrp/firmware/include -I../../../../usrp/firmware/src/usrp2 -I../../../../usrp/firmware/src/common -I../../../../usrp/firmware/src/common -DHAVE_USRP2 \
+		-c -o eeprom_io.rel `test -f 'eeprom_io.c' || echo './'`eeprom_io.c
+sdcc -mmcs51 --no-xinit-opt --code-loc 0x0000 --code-size 0x1800 --xram-loc 0x1800 --xram-size 0x0800 -Wl '-b USBDESCSEG = 0xE000' -L ../../lib libfx2.lib -o std.ihx vectors.rel usrp_main.rel usrp_common.rel board_specific.rel fpga_load.rel fpga_rev2.rel init_gpif.rel usrp_gpif.rel usb_descriptors.rel spi.rel eeprom_io.rel _startup.rel
+make[2]: Verlasse Verzeichnis '/home/kawk/work/usb_jtag/xtern/gnuradio-3.0.2/usrp/firmware/src/usrp2'
+make[2]: Betrete Verzeichnis '/home/kawk/work/usb_jtag/xtern/gnuradio-3.0.2/usrp/firmware/src'
+make[2]: Für das Ziel »all-am« ist nichts zu tun.
+make[2]: Verlasse Verzeichnis '/home/kawk/work/usb_jtag/xtern/gnuradio-3.0.2/usrp/firmware/src'
+make[1]: Verlasse Verzeichnis '/home/kawk/work/usb_jtag/xtern/gnuradio-3.0.2/usrp/firmware/src'
+make[1]: Betrete Verzeichnis '/home/kawk/work/usb_jtag/xtern/gnuradio-3.0.2/usrp/firmware'
+make[1]: Für das Ziel »all-am« ist nichts zu tun.
+make[1]: Verlasse Verzeichnis '/home/kawk/work/usb_jtag/xtern/gnuradio-3.0.2/usrp/firmware'

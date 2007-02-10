@@ -26,7 +26,12 @@
 // development kit from Cypress Semiconductor. They both are
 // Copyright (c) 2000 Cypress Semiconductor. All rights reserved.
 //-----------------------------------------------------------------------------
+#ifdef SDCC
+#define DUMMY_IRQN
+#else
+#define DUMMY_IRQN 0
 #pragma NOIV               // Do not generate interrupt vectors
+#endif
 
 #include "fx2.h"
 #include "fx2regs.h"
@@ -80,7 +85,11 @@ static WORD Pending;
 #else
   #define OUTBUFFER_LEN 0x200
 #endif
+#ifdef SDCC
+static xdata at 0xE000 BYTE OutBuffer[OUTBUFFER_LEN];
+#else
 static BYTE xdata OutBuffer[OUTBUFFER_LEN] _at_ 0xE000;
+#endif
 
 extern BOOL GotSUD;             // Received setup data flag
 extern BOOL Sleep;
@@ -468,7 +477,7 @@ BOOL DR_VendorCmnd(void)
 //-----------------------------------------------------------------------------
 
 // Setup Data Available Interrupt Handler
-void ISR_Sudav(void) interrupt 0
+void ISR_Sudav(void) interrupt DUMMY_IRQN
 {
    GotSUD = TRUE;            // Set flag
    EZUSB_IRQ_CLEAR();
@@ -476,19 +485,19 @@ void ISR_Sudav(void) interrupt 0
 }
 
 // Setup Token Interrupt Handler
-void ISR_Sutok(void) interrupt 0
+void ISR_Sutok(void) interrupt DUMMY_IRQN
 {
    EZUSB_IRQ_CLEAR();
    USBIRQ = bmSUTOK;         // Clear SUTOK IRQ
 }
 
-void ISR_Sof(void) interrupt 0
+void ISR_Sof(void) interrupt DUMMY_IRQN
 {
    EZUSB_IRQ_CLEAR();
    USBIRQ = bmSOF;            // Clear SOF IRQ
 }
 
-void ISR_Ures(void) interrupt 0
+void ISR_Ures(void) interrupt DUMMY_IRQN
 {
    if (EZUSB_HIGHSPEED())
    {
@@ -505,14 +514,14 @@ void ISR_Ures(void) interrupt 0
    USBIRQ = bmURES;         // Clear URES IRQ
 }
 
-void ISR_Susp(void) interrupt 0
+void ISR_Susp(void) interrupt DUMMY_IRQN
 {
    Sleep = TRUE;
    EZUSB_IRQ_CLEAR();
    USBIRQ = bmSUSP;
 }
 
-void ISR_Highspeed(void) interrupt 0
+void ISR_Highspeed(void) interrupt DUMMY_IRQN
 {
    if (EZUSB_HIGHSPEED())
    {
@@ -528,111 +537,111 @@ void ISR_Highspeed(void) interrupt 0
    EZUSB_IRQ_CLEAR();
    USBIRQ = bmHSGRANT;
 }
-void ISR_Ep0ack(void) interrupt 0
+void ISR_Ep0ack(void) interrupt DUMMY_IRQN
 {
 }
-void ISR_Stub(void) interrupt 0
+void ISR_Stub(void) interrupt DUMMY_IRQN
 {
 }
-void ISR_Ep0in(void) interrupt 0
+void ISR_Ep0in(void) interrupt DUMMY_IRQN
 {
 }
-void ISR_Ep0out(void) interrupt 0
+void ISR_Ep0out(void) interrupt DUMMY_IRQN
 {
 }
-void ISR_Ep1in(void) interrupt 0
+void ISR_Ep1in(void) interrupt DUMMY_IRQN
 {
 }
-void ISR_Ep1out(void) interrupt 0
+void ISR_Ep1out(void) interrupt DUMMY_IRQN
 {
 }
-void ISR_Ep2inout(void) interrupt 0
+void ISR_Ep2inout(void) interrupt DUMMY_IRQN
 {
 }
-void ISR_Ep4inout(void) interrupt 0
+void ISR_Ep4inout(void) interrupt DUMMY_IRQN
 {
 }
-void ISR_Ep6inout(void) interrupt 0
+void ISR_Ep6inout(void) interrupt DUMMY_IRQN
 {
 }
-void ISR_Ep8inout(void) interrupt 0
+void ISR_Ep8inout(void) interrupt DUMMY_IRQN
 {
 }
-void ISR_Ibn(void) interrupt 0
+void ISR_Ibn(void) interrupt DUMMY_IRQN
 {
 }
-void ISR_Ep0pingnak(void) interrupt 0
+void ISR_Ep0pingnak(void) interrupt DUMMY_IRQN
 {
 }
-void ISR_Ep1pingnak(void) interrupt 0
+void ISR_Ep1pingnak(void) interrupt DUMMY_IRQN
 {
 }
-void ISR_Ep2pingnak(void) interrupt 0
+void ISR_Ep2pingnak(void) interrupt DUMMY_IRQN
 {
 }
-void ISR_Ep4pingnak(void) interrupt 0
+void ISR_Ep4pingnak(void) interrupt DUMMY_IRQN
 {
 }
-void ISR_Ep6pingnak(void) interrupt 0
+void ISR_Ep6pingnak(void) interrupt DUMMY_IRQN
 {
 }
-void ISR_Ep8pingnak(void) interrupt 0
+void ISR_Ep8pingnak(void) interrupt DUMMY_IRQN
 {
 }
-void ISR_Errorlimit(void) interrupt 0
+void ISR_Errorlimit(void) interrupt DUMMY_IRQN
 {
 }
-void ISR_Ep2piderror(void) interrupt 0
+void ISR_Ep2piderror(void) interrupt DUMMY_IRQN
 {
 }
-void ISR_Ep4piderror(void) interrupt 0
+void ISR_Ep4piderror(void) interrupt DUMMY_IRQN
 {
 }
-void ISR_Ep6piderror(void) interrupt 0
+void ISR_Ep6piderror(void) interrupt DUMMY_IRQN
 {
 }
-void ISR_Ep8piderror(void) interrupt 0
+void ISR_Ep8piderror(void) interrupt DUMMY_IRQN
 {
 }
-void ISR_Ep2pflag(void) interrupt 0
+void ISR_Ep2pflag(void) interrupt DUMMY_IRQN
 {
 }
-void ISR_Ep4pflag(void) interrupt 0
+void ISR_Ep4pflag(void) interrupt DUMMY_IRQN
 {
 }
-void ISR_Ep6pflag(void) interrupt 0
+void ISR_Ep6pflag(void) interrupt DUMMY_IRQN
 {
 }
-void ISR_Ep8pflag(void) interrupt 0
+void ISR_Ep8pflag(void) interrupt DUMMY_IRQN
 {
 }
-void ISR_Ep2eflag(void) interrupt 0
+void ISR_Ep2eflag(void) interrupt DUMMY_IRQN
 {
 }
-void ISR_Ep4eflag(void) interrupt 0
+void ISR_Ep4eflag(void) interrupt DUMMY_IRQN
 {
 }
-void ISR_Ep6eflag(void) interrupt 0
+void ISR_Ep6eflag(void) interrupt DUMMY_IRQN
 {
 }
-void ISR_Ep8eflag(void) interrupt 0
+void ISR_Ep8eflag(void) interrupt DUMMY_IRQN
 {
 }
-void ISR_Ep2fflag(void) interrupt 0
+void ISR_Ep2fflag(void) interrupt DUMMY_IRQN
 {
 }
-void ISR_Ep4fflag(void) interrupt 0
+void ISR_Ep4fflag(void) interrupt DUMMY_IRQN
 {
 }
-void ISR_Ep6fflag(void) interrupt 0
+void ISR_Ep6fflag(void) interrupt DUMMY_IRQN
 {
 }
-void ISR_Ep8fflag(void) interrupt 0
+void ISR_Ep8fflag(void) interrupt DUMMY_IRQN
 {
 }
-void ISR_GpifComplete(void) interrupt 0
+void ISR_GpifComplete(void) interrupt DUMMY_IRQN
 {
 }
-void ISR_GpifWaveform(void) interrupt 0
+void ISR_GpifWaveform(void) interrupt DUMMY_IRQN
 {
 }
