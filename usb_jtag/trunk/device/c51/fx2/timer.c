@@ -40,7 +40,7 @@ hook_timer_tick (unsigned short isr_tick_handler)
   hook_sv (SV_TIMER_2, isr_tick_handler);
   
   RCAP2H = RELOAD_VALUE >> 8;	// setup the auto reload value
-  RCAP2L = RELOAD_VALUE;
+  RCAP2L = RELOAD_VALUE & 0xFF;
 
   T2CON = 0x04;			// interrupt on overflow; reload; run
   ET2 = 1;			// enable timer 2 interrupts
