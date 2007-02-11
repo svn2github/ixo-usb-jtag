@@ -1,31 +1,41 @@
 ;;; -*- asm -*-
-;;;
+
+;;;-----------------------------------------------------------------------------
+;;; USB Descriptor(s)
+;;;-----------------------------------------------------------------------------
+;;; Copyright 2005..2007 Kolja Waschk, ixo.de
+;;;-----------------------------------------------------------------------------
+;;; Code based on USRP2 firmware (GNU Radio Project), version 3.0.2,
 ;;; Copyright 2003 Free Software Foundation, Inc.
-;;; 
-;;; This file is part of GNU Radio
-;;; 
-;;; GNU Radio is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
-;;; 
-;;; GNU Radio is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
-;;; 
-;;; You should have received a copy of the GNU General Public License
-;;; along with GNU Radio; see the file COPYING.  If not, write to
-;;; the Free Software Foundation, Inc., 51 Franklin Street,
-;;; Boston, MA 02110-1301, USA.
-;;;
-        
+;;;-----------------------------------------------------------------------------
+;;; This code is part of usbjtag. usbjtag is free software; you can redistribute
+;;; it and/or modify it under the terms of the GNU General Public License as
+;;; published by the Free Software Foundation; either version 2 of the License,
+;;; or (at your option) any later version. usbjtag is distributed in the hope
+;;; that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+;;; warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;; GNU General Public License for more details.  You should have received a
+;;; copy of the GNU General Public License along with this program in the file
+;;; COPYING; if not, write to the Free Software Foundation, Inc., 51 Franklin
+;;; St, Fifth Floor, Boston, MA  02110-1301  USA
+;;;-----------------------------------------------------------------------------
+
         .module usb_descriptors
         
         VID              = 0x16C0
         PID              = 0x06AD
         VERSION          = 0x0004
-        
+        USB_VER          = 0x0110         ; Support USB version 1.10 
+
+        ;; configuration attributes
+        bmRWAKEUP        =   1 << 5
+        bmSELF_POWERED   =   1 << 6
+        bmBUS_POWERED    =   1 << 7
+
+        USB_ATTR         = bmBUS_POWERED  ; No remote wakeup, not self-powered
+        FTD_ATTR         = 0x001C         ; Set USB version, use version string, enable suspend PD
+        MAX_POWER        = 75             ; need 2*75 mA max
+
         DSCR_DEVICE      =   1        ; Descriptor type: Device
         DSCR_CONFIG      =   2        ; Descriptor type: Configuration
         DSCR_STRING      =   3        ; Descriptor type: String
@@ -44,12 +54,6 @@
         ET_BULK          =   2        ; Endpoint type: Bulk
         ET_INT           =   3        ; Endpoint type: Interrupt
         
-        
-        ;; configuration attributes
-        bmRWAKEUP        =   1 << 5
-        bmSELF_POWERED   =   1 << 6
-        bmBUS_POWERED    =   1 << 7
-
 ;;; --------------------------------------------------------
 ;;;        external ram data
 ;;;--------------------------------------------------------
@@ -74,8 +78,8 @@
 _high_speed_device_descr::
         .db        DSCR_DEVICE_LEN
         .db        DSCR_DEVICE
-        .db        <0x0110          ; Specification version (LSB)
-        .db        >0x0110          ; Specification version (MSB)
+        .db        <USB_VER         ; Specification version (LSB)
+        .db        >USB_VER         ; Specification version (MSB)
         .db        0x00             ; device class (vendor specific)
         .db        0x00             ; device subclass (vendor specific)
         .db        0x00             ; device protocol (vendor specific)
@@ -96,8 +100,8 @@ _usb_desc_hw_rev_binary_patch_location_0::
 _high_speed_devqual_descr::
         .db        DSCR_DEVQUAL_LEN
         .db        DSCR_DEVQUAL
-        .db        <0x0110          ; bcdUSB (LSB)
-        .db        >0x0110          ; bcdUSB (MSB)
+        .db        <USB_VER         ; bcdUSB (LSB)
+        .db        >USB_VER         ; bcdUSB (MSB)
         .db        0xFF             ; bDeviceClass
         .db        0xFF             ; bDeviceSubClass
         .db        0xFF             ; bDeviceProtocol
@@ -114,8 +118,8 @@ _high_speed_config_descr::
         .db        1                ; bNumInterfaces
         .db        1                ; bConfigurationValue
         .db        0                ; iConfiguration
-        .db        bmBUS_POWERED    ; bmAttributes
-        .db        75               ; bMaxPower [Unit: 0.5 mA]
+        .db        USB_ATTR         ; bmAttributes
+        .db        MAX_POWER        ; bMaxPower [Unit: 0.5 mA]
 
         ;; interface descriptor
         
@@ -159,8 +163,8 @@ _high_speed_config_descr_end:
 _full_speed_device_descr::        
         .db        DSCR_DEVICE_LEN
         .db        DSCR_DEVICE
-        .db        <0x0110          ; Specification version (LSB)
-        .db        >0x0110          ; Specification version (MSB)
+        .db        <USB_VER         ; Specification version (LSB)
+        .db        >USB_VER         ; Specification version (MSB)
         .db        0xFF             ; device class (vendor specific)
         .db        0xFF             ; device subclass (vendor specific)
         .db        0xFF             ; device protocol (vendor specific)
@@ -182,8 +186,8 @@ _usb_desc_hw_rev_binary_patch_location_1::
 _full_speed_devqual_descr::
         .db        DSCR_DEVQUAL_LEN
         .db        DSCR_DEVQUAL
-        .db        <0x0110          ; bcdUSB
-        .db        >0x0110          ; bcdUSB
+        .db        <USB_VER         ; bcdUSB
+        .db        >USB_VER         ; bcdUSB
         .db        0xFF             ; bDeviceClass
         .db        0xFF             ; bDeviceSubClass
         .db        0xFF             ; bDeviceProtocol
@@ -200,8 +204,8 @@ _full_speed_config_descr::
         .db        1                ; bNumInterfaces
         .db        1                ; bConfigurationValue
         .db        0                ; iConfiguration
-        .db        bmBUS_POWERED    ; bmAttributes
-        .db        75               ; bMaxPower [Unit: 0.5 mA]
+        .db        USB_ATTR         ; bmAttributes
+        .db        MAX_POWER        ; bMaxPower [Unit: 0.5 mA]
 
         ;; interface descriptor 0 (command & status, ep0 COMMAND)
         
