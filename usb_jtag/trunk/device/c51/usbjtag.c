@@ -31,7 +31,16 @@
 #include "syncdelay.h"
 
 #include "eeprom.h"
-#include "hardware.h"
+
+#if defined(hw_basic)
+ #include "hw_basic.h"
+#elif defined(hw_xpcu_i)
+ #include "hw_xpcu_i.h"
+#elif defined(hw_xpcu_x)
+ #include "hw_xpcu_x.h"
+#else
+ #error undefined hw_* in usbjtag.c
+#endif
 
 //-----------------------------------------------------------------------------
 // Define USE_MOD256_OUTBUFFER:
@@ -96,14 +105,17 @@ void usb_jtag_init(void)              // Called once at startup
    // Use internal 48 MHz, enable output, use "Port" mode for all pins
    IFCONFIG = bmIFCLKSRC | bm3048MHZ | bmIFCLKOE;
 
-   ProgIO_Init();
-   ProgIO_Enable();
-
+#if 0
    // power on the FPGA and all other VCCs, de-assert RESETN
    IOE = 0x1F;
    OEE = 0x1F;
    mdelay(500); // wait for supply to come up
- 
+#endif
+
+   ProgIO_Init();
+   ProgIO_Enable();
+
+
    // The remainder of the code however should be left unchanged...
 
    // Make Timer2 reload at 100 Hz to trigger Keepalive packets

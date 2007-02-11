@@ -17,11 +17,11 @@
 
 LIBDIR=fx2
 LIB=libfx2.lib
-
-HARDWARE=hw_basic
+#HARDWARE=hw_basic
+HARDWARE=hw_xpcu_i
 
 CC=sdcc
-CFLAGS+=-mmcs51 --no-xinit-opt -I${LIBDIR}
+CFLAGS+=-mmcs51 --no-xinit-opt -I${LIBDIR} -D${HARDWARE}
 
 AS=asx8051
 ASFLAGS+=-plosgff
@@ -30,7 +30,6 @@ LDFLAGS=--code-loc 0x0000 --code-size 0x1800
 LDFLAGS+=--xram-loc 0x1800 --xram-size 0x0800
 LDFLAGS+=-Wl '-b USBDESCSEG = 0xE000'
 LDFLAGS+=-L ${LIBDIR}
-
 
 %.rel : %.a51
 	$(AS) $(ASFLAGS) $<

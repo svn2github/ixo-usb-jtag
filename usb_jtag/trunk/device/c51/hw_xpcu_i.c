@@ -20,30 +20,35 @@
 
 void ShiftOut(unsigned char c)
 {
-  SetTDI(c&1); SetTCK(1); c>>=1; SetTCK(0);
-  SetTDI(c&1); SetTCK(1); c>>=1; SetTCK(0);
-  SetTDI(c&1); SetTCK(1); c>>=1; SetTCK(0);
-  SetTDI(c&1); SetTCK(1); c>>=1; SetTCK(0);
-                                 
-  SetTDI(c&1); SetTCK(1); c>>=1; SetTCK(0);
-  SetTDI(c&1); SetTCK(1); c>>=1; SetTCK(0);
-  SetTDI(c&1); SetTCK(1); c>>=1; SetTCK(0);
-  SetTDI(c&1); SetTCK(1); c>>=1; SetTCK(0);
+  unsigned char lc=c;
+
+  if(lc&1) IOE|=0x40; else IOE&=~0x40; IOE|=0x08; lc>>=1; IOE&=~0x08;
+  if(lc&1) IOE|=0x40; else IOE&=~0x40; IOE|=0x08; lc>>=1; IOE&=~0x08;
+  if(lc&1) IOE|=0x40; else IOE&=~0x40; IOE|=0x08; lc>>=1; IOE&=~0x08;
+  if(lc&1) IOE|=0x40; else IOE&=~0x40; IOE|=0x08; lc>>=1; IOE&=~0x08;
+
+  if(lc&1) IOE|=0x40; else IOE&=~0x40; IOE|=0x08; lc>>=1; IOE&=~0x08;
+  if(lc&1) IOE|=0x40; else IOE&=~0x40; IOE|=0x08; lc>>=1; IOE&=~0x08;
+  if(lc&1) IOE|=0x40; else IOE&=~0x40; IOE|=0x08; lc>>=1; IOE&=~0x08;
+  if(lc&1) IOE|=0x40; else IOE&=~0x40; IOE|=0x08; lc>>=1; IOE&=~0x08;
 }
 
-void ShiftInOut(unsigned char c)
+unsigned char ShiftInOut(unsigned char c)
 {
-  bit carry;
+  unsigned char carry;
+  unsigned char lc=c;
 
-  carry=GetTDO()?0x80:0; SetTDI(c&1); SetTCK(1); c=carry|(c>>1); SetTCK(0);
-  carry=GetTDO()?0x80:0; SetTDI(c&1); SetTCK(1); c=carry|(c>>1); SetTCK(0);
-  carry=GetTDO()?0x80:0; SetTDI(c&1); SetTCK(1); c=carry|(c>>1); SetTCK(0);
-  carry=GetTDO()?0x80:0; SetTDI(c&1); SetTCK(1); c=carry|(c>>1); SetTCK(0);
+  carry = (IOE&0x20)<<2; if(lc&1) IOE|=0x40; else IOE&=~0x40; IOE|=0x08; lc=carry|(lc>>1); IOE&=~0x08;
+  carry = (IOE&0x20)<<2; if(lc&1) IOE|=0x40; else IOE&=~0x40; IOE|=0x08; lc=carry|(lc>>1); IOE&=~0x08;
+  carry = (IOE&0x20)<<2; if(lc&1) IOE|=0x40; else IOE&=~0x40; IOE|=0x08; lc=carry|(lc>>1); IOE&=~0x08;
+  carry = (IOE&0x20)<<2; if(lc&1) IOE|=0x40; else IOE&=~0x40; IOE|=0x08; lc=carry|(lc>>1); IOE&=~0x08;
 
-  carry=GetTDO()?0x80:0; SetTDI(c&1); SetTCK(1); c=carry|(c>>1); SetTCK(0);
-  carry=GetTDO()?0x80:0; SetTDI(c&1); SetTCK(1); c=carry|(c>>1); SetTCK(0);
-  carry=GetTDO()?0x80:0; SetTDI(c&1); SetTCK(1); c=carry|(c>>1); SetTCK(0);
-  carry=GetTDO()?0x80:0; SetTDI(c&1); SetTCK(1); c=carry|(c>>1); SetTCK(0);
+  carry = (IOE&0x20)<<2; if(lc&1) IOE|=0x40; else IOE&=~0x40; IOE|=0x08; lc=carry|(lc>>1); IOE&=~0x08;
+  carry = (IOE&0x20)<<2; if(lc&1) IOE|=0x40; else IOE&=~0x40; IOE|=0x08; lc=carry|(lc>>1); IOE&=~0x08;
+  carry = (IOE&0x20)<<2; if(lc&1) IOE|=0x40; else IOE&=~0x40; IOE|=0x08; lc=carry|(lc>>1); IOE&=~0x08;
+  carry = (IOE&0x20)<<2; if(lc&1) IOE|=0x40; else IOE&=~0x40; IOE|=0x08; lc=carry|(lc>>1); IOE&=~0x08;
+
+  return lc;
 }
 
 
