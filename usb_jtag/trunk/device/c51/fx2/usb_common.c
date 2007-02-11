@@ -1,23 +1,21 @@
 /* -*- c++ -*- */
-/*
+/*-----------------------------------------------------------------------------
+ * Common USB code for FX2
+ *-----------------------------------------------------------------------------
+ * Code taken from USRP2 firmware (GNU Radio Project), version 3.0.2,
  * Copyright 2003 Free Software Foundation, Inc.
- * 
- * This file is part of GNU Radio
- * 
- * GNU Radio is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
- * 
- * GNU Radio is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with GNU Radio; see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 51 Franklin Street,
- * Boston, MA 02110-1301, USA.
+ *-----------------------------------------------------------------------------
+ * This code is part of usbjtag. usbjtag is free software; you can redistribute
+ * it and/or modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of the License,
+ * or (at your option) any later version. usbjtag is distributed in the hope
+ * that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.  You should have received a
+ * copy of the GNU General Public License along with this program in the file
+ * COPYING; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA  02110-1301  USA
+ *-----------------------------------------------------------------------------
  */
 
 #include "usb_common.h"
@@ -34,19 +32,6 @@ extern xdata char str2[];
 extern xdata char str3[];
 extern xdata char str4[];
 extern xdata char str5[];
-
-
-#define	bRequestType	SETUPDAT[0]
-#define	bRequest	SETUPDAT[1]
-#define	wValueL		SETUPDAT[2]
-#define	wValueH		SETUPDAT[3]
-#define	wIndexL		SETUPDAT[4]
-#define	wIndexH		SETUPDAT[5]
-#define	wLengthL	SETUPDAT[6]
-#define	wLengthH	SETUPDAT[7]
-
-#define MSB(x)	(((unsigned short) x) >> 8)
-#define LSB(x)	(((unsigned short) x) & 0xff)
 
 volatile bit _usb_got_SUDAV;
 
