@@ -18,10 +18,6 @@
 // St, Fifth Floor, Boston, MA  02110-1301  USA
 //-----------------------------------------------------------------------------
 
-#include "usrp_common.h"
-#include "usrp_commands.h"
-#include "usrp_globals.h"
-
 #include "isr.h"
 #include "timer.h"
 #include "delay.h"
@@ -31,20 +27,11 @@
 #include "usb_descriptors.h"
 #include "usb_requests.h"
 
+#include "syncdelay.h"
+
 #include "hardware.h"
 
 extern const unsigned char eeprom[256];
-
-//-----------------------------------------------------------------------------
-
-#define bRequestType  SETUPDAT[0]
-#define bRequest      SETUPDAT[1]
-#define wValueL       SETUPDAT[2]
-#define wValueH       SETUPDAT[3]
-#define wIndexL       SETUPDAT[4]
-#define wIndexH       SETUPDAT[5]
-#define wLengthL      SETUPDAT[6]
-#define wLengthH      SETUPDAT[7]
 
 //-----------------------------------------------------------------------------
 // Define USE_MOD256_OUTBUFFER:
@@ -60,6 +47,18 @@ extern const unsigned char eeprom[256];
 // Global data
 
 typedef bit BOOL;
+#define FALSE 0
+#define TRUE  1
+
+#define bRequestType  SETUPDAT[0]
+#define bRequest      SETUPDAT[1]
+#define wValueL       SETUPDAT[2]
+#define wValueH       SETUPDAT[3]
+#define wIndexL       SETUPDAT[4]
+#define wIndexH       SETUPDAT[5]
+#define wLengthL      SETUPDAT[6]
+#define wLengthH      SETUPDAT[7]
+
 #define MSB(x) ((((unsigned short)x)>>8)&255)
 #define LSB(x) (((unsigned short)x)&255)
 
