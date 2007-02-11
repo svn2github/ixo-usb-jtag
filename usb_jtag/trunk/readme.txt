@@ -43,7 +43,7 @@ ChipScope is a trademark of Xilinx Inc.
 FILES: Beside this README, this archive contains the following files:
 
  - copying.txt: The text of the GNU Public License (GPL).
- - device/fx2: Firmware for usb_jtag based on Cypress FX2
+ - device/c51: Firmware for usb_jtag based on Cypress FX2
  - device/cpld: CPLD logic for usb_jtag with FT245BM + CPLD
  - host/eecksum: Code to compute a valid checksum for FT245BM EEPROM emulation
  - host/devtest: Small utility to do some basic tests with usb_jtag adapter
