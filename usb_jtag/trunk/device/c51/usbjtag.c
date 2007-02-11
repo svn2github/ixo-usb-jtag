@@ -1,22 +1,23 @@
-//-----------------------------------------------------------------------------
-// Code that turns a Cypress FX2 USB Controller into an USB JTAG adapter
-//-----------------------------------------------------------------------------
-// Copyright (C) 2005..2007 Kolja Waschk, ixo.de
-//-----------------------------------------------------------------------------
-// Check hardware.h/.c if it matches your hardware configuration (e.g. pinout).
-// Changes regarding USB identification should be made in product.inc!
-//-----------------------------------------------------------------------------
-// This code is part of usbjtag. usbjtag is free software; you can redistribute
-// it and/or modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of the License,
-// or (at your option) any later version. usbjtag is distributed in the hope
-// that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
-// warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.  You should have received a
-// copy of the GNU General Public License along with this program in the file
-// COPYING; if not, write to the Free Software Foundation, Inc., 51 Franklin
-// St, Fifth Floor, Boston, MA  02110-1301  USA
-//-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
+ * Code that turns a Cypress FX2 USB Controller into an USB JTAG adapter
+ *-----------------------------------------------------------------------------
+ * Copyright (C) 2005..2007 Kolja Waschk, ixo.de
+ *-----------------------------------------------------------------------------
+ * Check hardware.h/.c if it matches your hardware configuration (e.g. pinout).
+ * Changes regarding USB identification should be made in product.inc!
+ *-----------------------------------------------------------------------------
+ * This code is part of usbjtag. usbjtag is free software; you can redistribute
+ * it and/or modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of the License,
+ * or (at your option) any later version. usbjtag is distributed in the hope
+ * that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.  You should have received a
+ * copy of the GNU General Public License along with this program in the file
+ * COPYING; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA  02110-1301  USA
+ *-----------------------------------------------------------------------------
+ */
 
 #include "isr.h"
 #include "timer.h"
@@ -49,23 +50,12 @@ extern const unsigned char eeprom[256];
 typedef bit BOOL;
 #define FALSE 0
 #define TRUE  1
-
-#define bRequestType  SETUPDAT[0]
-#define bRequest      SETUPDAT[1]
-#define wValueL       SETUPDAT[2]
-#define wValueH       SETUPDAT[3]
-#define wIndexL       SETUPDAT[4]
-#define wIndexH       SETUPDAT[5]
-#define wLengthL      SETUPDAT[6]
-#define wLengthH      SETUPDAT[7]
-
-#define MSB(x) ((((unsigned short)x)>>8)&255)
-#define LSB(x) (((unsigned short)x)&255)
-
 static BOOL Running;
 static BOOL WriteOnly;
+
 static BYTE ClockBytes;
 static WORD Pending;
+
 #ifdef USE_MOD256_OUTBUFFER
   static BYTE FirstDataInOutBuffer;
   static BYTE FirstFreeInOutBuffer;

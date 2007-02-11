@@ -1,28 +1,27 @@
-//-----------------------------------------------------------------------------
-// Hardware-dependent code for usb_jtag
-//-----------------------------------------------------------------------------
-// Copyright (C) 2007 Kolja Waschk, ixo.de
-//-----------------------------------------------------------------------------
-// This code is part of usbjtag. usbjtag is free software; you can redistribute
-// it and/or modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of the License,
-// or (at your option) any later version. usbjtag is distributed in the hope
-// that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
-// warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.  You should have received a
-// copy of the GNU General Public License along with this program in the file
-// COPYING; if not, write to the Free Software Foundation, Inc., 51 Franklin
-// St, Fifth Floor, Boston, MA  02110-1301  USA
-//-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
+ * Hardware-dependent code for usb_jtag
+ *-----------------------------------------------------------------------------
+ * Copyright (C) 2007 Kolja Waschk, ixo.de
+ *-----------------------------------------------------------------------------
+ * This code is part of usbjtag. usbjtag is free software; you can redistribute
+ * it and/or modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of the License,
+ * or (at your option) any later version. usbjtag is distributed in the hope
+ * that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.  You should have received a
+ * copy of the GNU General Public License along with this program in the file
+ * COPYING; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA  02110-1301  USA
+ *-----------------------------------------------------------------------------
+ */
 
 #ifndef _HARDWARE_H
 #define _HARDWARE_H 1
 
-#if 0
-#define HAVE_PS_MODE 1
-#define HAVE_AS_MODE 1
-#define HAVE_OE_LED  1
-#endif
+// #define HAVE_PS_MODE 1
+// #define HAVE_AS_MODE 1
+// #define HAVE_OE_LED  1
 
 //-----------------------------------------------------------------------------
 

@@ -1,21 +1,19 @@
-## -*- asm -*-
-##
-##-----------------------------------------------------------------------------
-## Makefile for usb_jtag FX2 firmware
-##-----------------------------------------------------------------------------
-## Copyright 2007 Kolja Waschk, ixo.de
-##-----------------------------------------------------------------------------
-## This code is part of usbjtag. usbjtag is free software; you can redistribute
-## it and/or modify it under the terms of the GNU General Public License as
-## published by the Free Software Foundation; either version 2 of the License,
-## or (at your option) any later version. usbjtag is distributed in the hope
-## that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
-## warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU General Public License for more details.  You should have received a
-## copy of the GNU General Public License along with this program in the file
-## COPYING; if not, write to the Free Software Foundation, Inc., 51 Franklin
-## St, Fifth Floor, Boston, MA  02110-1301  USA
-##-----------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
+# Makefile for usb_jtag FX2 firmware
+#-----------------------------------------------------------------------------
+# Copyright 2007 Kolja Waschk, ixo.de
+#-----------------------------------------------------------------------------
+# This code is part of usbjtag. usbjtag is free software; you can redistribute
+# it and/or modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of the License,
+# or (at your option) any later version. usbjtag is distributed in the hope
+# that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.  You should have received a
+# copy of the GNU General Public License along with this program in the file
+# COPYING; if not, write to the Free Software Foundation, Inc., 51 Franklin
+# St, Fifth Floor, Boston, MA  02110-1301  USA
+#-----------------------------------------------------------------------------
 
 LIBDIR=fx2
 LIB=libfx2.lib
