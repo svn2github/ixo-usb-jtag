@@ -16,7 +16,7 @@
  *-----------------------------------------------------------------------------
  */
 
-#include "hardware.h"
+#include "hw_basic.h"
 
 void ShiftOut(unsigned char c)
 {
@@ -198,5 +198,6 @@ unsigned char ShiftInOut_AS(unsigned char c)
 }
 
 #endif /* HAVE_ASMODE */
+
 
 
