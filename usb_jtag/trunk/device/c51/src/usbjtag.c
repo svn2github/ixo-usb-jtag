@@ -86,14 +86,6 @@ static WORD Pending;
   static xdata BYTE OutBuffer[OUTBUFFER_LEN];
 #endif
 
-extern BOOL GotSUD;             // Received setup data flag
-extern BOOL Sleep;
-extern BOOL Rwuen;
-extern BOOL Selfpwr;
-
-BYTE Configuration;             // Current configuration
-BYTE AlternateSetting;          // Alternate settings
-
 //-----------------------------------------------------------------------------
 
 void usb_jtag_init(void)              // Called once at startup
@@ -116,9 +108,8 @@ void usb_jtag_init(void)              // Called once at startup
    // Use internal 48 MHz, enable output, use "Port" mode for all pins
    IFCONFIG = bmIFCLKSRC | bm3048MHZ | bmIFCLKOE;
 
-   // If you're using other pins for JTAG, please also change shift.a51!
-   // activate JTAG outputs on Port C
-   OEC = bmTDIOE | bmTCKOE | bmTMSOE;
+   ProgIO_Init();
+   ProgIO_Enable();
 
    // power on the FPGA and all other VCCs, de-assert RESETN
    IOE = 0x1F;
@@ -322,6 +313,8 @@ void usb_jtag_activity(void) // Called repeatedly while the device is idle
             if(ClockBytes < m) m = ClockBytes;
             ClockBytes -= m;
             i += m;
+
+            /* Shift out 8 bits from d */
          
             if(WriteOnly) /* Shift out 8 bits from d */
             {

@@ -18,9 +18,11 @@
 #ifndef _HARDWARE_H
 #define _HARDWARE_H 1
 
+#if 0
 #define HAVE_PS_MODE 1
 #define HAVE_AS_MODE 1
 #define HAVE_OE_LED  1
+#endif
 
 //-----------------------------------------------------------------------------
 
@@ -28,14 +30,14 @@
 
 /* JTAG TCK, AS/PS DCLK */
 
-sbit at 0xA0          TCK; /* Port C.0 */
-#define bmTCKOE       bmBIT0
+sbit at 0xA2          TCK; /* Port C.0 */
+#define bmTCKOE       bmBIT2
 #define SetTCK(x)     do{TCK=(x);}while(0)
 
 /* JTAG TDI, AS ASDI, PS DATA0 */
 
-sbit at 0xA2          TDI; /* Port C.2 */
-#define bmTDIOE       bmBIT2
+sbit at 0xA0          TDI; /* Port C.2 */
+#define bmTDIOE       bmBIT0
 #define SetTDI(x)     do{TDI=(x);}while(0)
 
 /* JTAG TMS, AS/PS nCONFIG */
@@ -76,6 +78,7 @@ sbit at 0xA1          TDO; /* Port C.1 */
   sbit at 0xA4        NCS; /* Port C.4 */
   #define bmNCSOE     bmBIT4
   #define SetNCS(x)   do{NCS=(x);}while(0)
+  #define GetNCS(x)   NCS
 
   /* AS Mode nCE */
 
@@ -89,6 +92,7 @@ sbit at 0xA1          TDO; /* Port C.1 */
 
   #define bmNCSOE     0
   #define SetNCS(x)   while(0){}
+  #define GetNCS(x)   1
   #define bmNCEOE     0
   #define SetNCE(x)   while(0){}
 
