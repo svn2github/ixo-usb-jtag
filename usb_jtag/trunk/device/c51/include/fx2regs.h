@@ -422,9 +422,9 @@ sfr at 0xAB EP24FIFOFLGS;
 sfr at 0xAC EP68FIFOFLGS;
 sfr at 0xAF AUTOPTRSETUP;
             /* AUTOPTRSETUP */
-            // sbit EXTACC  = 0xAF+0;
-            // sbit APTR1FZ = 0xAF+1;
-            // sbit APTR2FZ = 0xAF+2;
+            sbit at 0xAF+0 EXTACC;
+            sbit at 0xAF+1 APTR1FZ;
+            sbit at 0xAF+2 APTR2FZ;
 
 sfr at 0xB0 IOD;
 sfr at 0xB1 IOE;

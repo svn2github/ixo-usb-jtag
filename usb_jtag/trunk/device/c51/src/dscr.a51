@@ -76,7 +76,6 @@ _high_speed_device_descr::
         .db        >VID             ; idVendor
         .db        <PID             ; idProduct
         .db        >PID             ; idProduct
-_usb_desc_hw_rev_binary_patch_location_0::
         .db        <VERSION         ; bcdDevice
         .db        >VERSION         ; bcdDevice
         .db        SI_VENDOR        ; iManufacturer (string index)
@@ -153,20 +152,19 @@ _full_speed_device_descr::
         .db        DSCR_DEVICE
         .db        <USB_VER         ; Specification version (LSB)
         .db        >USB_VER         ; Specification version (MSB)
-        .db        0xFF             ; device class (vendor specific)
-        .db        0xFF             ; device subclass (vendor specific)
-        .db        0xFF             ; device protocol (vendor specific)
+        .db        0x00             ; device class (vendor specific)
+        .db        0x00             ; device subclass (vendor specific)
+        .db        0x00             ; device protocol (vendor specific)
         .db        64               ; bMaxPacketSize0 for endpoint 0
         .db        <VID             ; idVendor
         .db        >VID             ; idVendor
         .db        <PID             ; idProduct
         .db        >PID             ; idProduct
-_usb_desc_hw_rev_binary_patch_location_1::
         .db        <VERSION         ; bcdDevice
         .db        >VERSION         ; bcdDevice
         .db        SI_VENDOR        ; iManufacturer (string index)
         .db        SI_PRODUCT       ; iProduct (string index)
-        .db        SI_NONE          ; iSerial number (None)
+        .db        SI_SERIAL        ; iSerial number (None)
         .db        1                ; bNumConfigurations
         
 ;;; describes the other speed (480Mb/sec)
@@ -194,18 +192,6 @@ _full_speed_config_descr::
         .db        0                ; iConfiguration
         .db        USB_ATTR         ; bmAttributes
         .db        MAX_POWER        ; bMaxPower [Unit: 0.5 mA]
-
-        ;; interface descriptor 0 (command & status, ep0 COMMAND)
-        
-        .db        DSCR_INTRFC_LEN
-        .db        DSCR_INTRFC
-        .db        0                ; bInterfaceNumber (zero based)
-        .db        0                ; bAlternateSetting
-        .db        0                ; bNumEndpoints
-        .db        0xff             ; bInterfaceClass (vendor specific)
-        .db        0xff             ; bInterfaceSubClass (vendor specific)
-        .db        0xff             ; bInterfaceProtocol (vendor specific)
-        .db        SI_PRODUCT       ; iInterface (description)
 
         ;; interface descriptor
         
@@ -258,7 +244,7 @@ _string_descriptors_end:
         SI_NONE = 0
         ;; str0 contains the language ID's.
         .even
-str0:        .db        str0_end - str0
+str0:   .db        str0_end - str0
         .db        DSCR_STRING
         .db        0
         .db        0
@@ -268,7 +254,7 @@ str0_end:
 
         SI_VENDOR = 1
         .even
-str1:        .db        str1_end - str1
+str1:   .db        str1_end - str1
         .db        DSCR_STRING
         .db        'i, 0            ; 16-bit unicode
         .db        'x, 0
@@ -280,7 +266,7 @@ str1_end:
 
         SI_PRODUCT = 2
         .even
-str2:        .db        str2_end - str2
+str2:   .db        str2_end - str2
         .db        DSCR_STRING
         .db        'U, 0
         .db        'S, 0
@@ -292,15 +278,13 @@ str2:        .db        str2_end - str2
         .db        'G, 0
         .db        '-, 0
         .db        'I, 0
-_usb_desc_hw_rev_ascii_patch_location_0::
         .db        'F, 0
 str2_end:
 
-        SI_SERIAL = 6
+        SI_SERIAL = 3
         .even
-str3:        .db        str3_end - str3
+str3:   .db        str3_end - str3
         .db        DSCR_STRING
-_usb_desc_serial_number_ascii::
         .db        '0, 0
         .db        '0, 0
         .db        '0, 0

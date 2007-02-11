@@ -25,6 +25,9 @@
 
 extern volatile bit _usb_got_SUDAV;
 
+// Provided by user application to report device status.
+// returns non-zero if it handled the command.
+unsigned char app_get_status (void);
 // Provided by user application to handle VENDOR commands.
 // returns non-zero if it handled the command.
 unsigned char app_vendor_cmd (void);

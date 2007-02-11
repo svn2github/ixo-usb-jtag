@@ -29,10 +29,11 @@
 #include "fx2utils.h"
 #include "usb_common.h"
 #include "usb_descriptors.h"
+#include "usb_requests.h"
 
 #include "hardware.h"
 
-extern const code eeprom[256];
+extern const unsigned char eeprom[256];
 
 //-----------------------------------------------------------------------------
 
@@ -163,7 +164,6 @@ void usb_jtag_init(void)              // Called once at startup
    EP2BCL = 0x80;                // arm EP4OUT by writing byte count w/skip.
    SYNCDELAY;                    // 
    EP4BCL = 0x80;    
-
 }
 
 void OutputByte(BYTE d)
@@ -179,8 +179,8 @@ void OutputByte(BYTE d)
 }
 
 //-----------------------------------------------------------------------------
-// TD_Poll does most of the work. It now happens to behave just like the 
-// combination of FT245BM and Altera-programmed EPM7064 CPLD in Altera's
+// usb_jtag_activity does most of the work. It now happens to behave just like
+// the combination of FT245BM and Altera-programmed EPM7064 CPLD in Altera's
 // USB-Blaster. The CPLD knows two major modes: Bit banging mode and Byte
 // shift mode. It starts in Bit banging mode. While bytes are received
 // from the host on EP2OUT, each byte B of them is processed as follows:
@@ -246,7 +246,7 @@ void OutputByte(BYTE d)
 //
 //-----------------------------------------------------------------------------
 
-void TD_Poll(void)              // Called repeatedly while the device is idle
+void usb_jtag_activity(void) // Called repeatedly while the device is idle
 {
    if(!Running) return;
    
@@ -347,13 +347,20 @@ void TD_Poll(void)              // Called repeatedly while the device is idle
             {
                /* Set state of output pins */
 
-               TCK = (d & bmBIT0) ? 1 : 0;
-               TMS = (d & bmBIT1) ? 1 : 0;
-               TDI = (d & bmBIT4) ? 1 : 0;
+               SetTCK((d & bmBIT0) ? 1 : 0);
+               SetTMS((d & bmBIT1) ? 1 : 0);
+#ifdef HAVE_AS_MODE
+               SetNCE((d & bmBIT2) ? 1 : 0);
+               SetNCS((d & bmBIT3) ? 1 : 0);
+#endif
+               SetTDI((d & bmBIT4) ? 1 : 0);
+#ifdef HAVE_OE_LED
+               SetOELED((d & bmBIT5) ? 1 : 0);
+#endif
 
                /* Optionally read state of input pins and put it in output buffer */
 
-               if(!WriteOnly) OutputByte(2|TDO);
+               if(!WriteOnly) OutputByte((GetASDO()<<1)|GetTDO());
             };
             i++;
          };
@@ -365,49 +372,41 @@ void TD_Poll(void)              // Called repeatedly while the device is idle
 }
 
 //-----------------------------------------------------------------------------
+// Handler for Vendor Requests (
+//-----------------------------------------------------------------------------
 
 unsigned char app_vendor_cmd(void)
 {
-  if(bRequestType == VRT_VENDOR_IN)
+  // OUT requests. Pretend we handle them all...
+
+  if ((bRequestType & bmRT_DIR_MASK) == bmRT_DIR_OUT)
   {
-    switch(bRequest)
+    if(bRequest == RQ_GET_STATUS)
     {
-      case 0x90: // Read EEPROM
-      {
-        BYTE addr = (wIndexL<<1) & 0x7F;
-        EP0BUF[0] = eeprom[addr];
-        EP0BUF[1] = eeprom[addr+1];
-        break;
-      };
-      default:
-      {
-        EP0BUF[0] = 0x36;
-        EP0BUF[1] = 0x83;
-        break;
-      };
-    }
-
-    EP0BCH = 0;
-    EP0BCL = 2; // Arm endpoint with # bytes to transfer
-    EP0CS |= bmHSNAK; // Acknowledge handshake phase of device request
-    return 0;
+      Running = 1;
+    };
+    return 1;
   }
-  return 1;
-}
 
-//-----------------------------------------------------------------------------
+  // IN requests.
 
-void isr_tick (void) interrupt
-{
-#if 0
-  static unsigned char  count = 1;
-  if (--count == 0)
+  if(bRequest == 0x90)
   {
-    count = 50;
-    USRP_LED_REG ^= bmLED0;
+    BYTE addr = (wIndexL<<1) & 0x7F;
+    EP0BUF[0] = eeprom[addr];
+    EP0BUF[1] = eeprom[addr+1];
   }
-#endif
-  clear_timer_irq();
+  else
+  {
+    // dummy data
+    EP0BUF[0] = 0x36;
+    EP0BUF[1] = 0x83;
+  }
+
+  EP0BCH = 0;
+  EP0BCL = (wLengthL<2) ? wLengthL : 2; // Arm endpoint with # bytes to transfer
+
+  return 1;
 }
 
 //-----------------------------------------------------------------------------
@@ -417,34 +416,25 @@ static void main_loop(void)
   while(1)
   {
     if(usb_setup_packet_avail()) usb_handle_setup_packet();
-    TD_Poll();
+    usb_jtag_activity();
   }
 }
 
 //-----------------------------------------------------------------------------
-//
 
-
-void
-main (void)
+void main(void)
 {
   usb_jtag_init();
 
-  // IFCONFIG |= bmGSTATE;         // no conflict, start with it on
-
-  EA = 0;       // disable all interrupts
-
-  // patch_usb_descriptors();
+  EA = 0; // disable all interrupts
 
   setup_autovectors ();
   usb_install_handlers ();
 
-  // hook_timer_tick((unsigned short) isr_tick);
+  EIEX4 = 1; // disable INT4 FIXME
+  EA = 1; // enable interrupts
 
-  EIEX4 = 1;        // disable INT4 FIXME
-  EA = 1;       // global interrupt enable
-
-  fx2_renumerate();    // simulates disconnect / reconnect
+  fx2_renumerate(); // simulates disconnect / reconnect
 
   main_loop();
 }

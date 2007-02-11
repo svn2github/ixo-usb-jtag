@@ -1,3 +1,3 @@
 all:
 	make -C lib
-	make -C src
+	make -C src boot

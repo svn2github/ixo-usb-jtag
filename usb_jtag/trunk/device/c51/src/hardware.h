@@ -30,19 +30,19 @@
 
 sbit at 0xA0          TCK; /* Port C.0 */
 #define bmTCKOE       bmBIT0
-#define SetTCK(x)     do{TCK=x}while(0)
+#define SetTCK(x)     do{TCK=(x);}while(0)
 
 /* JTAG TDI, AS ASDI, PS DATA0 */
 
 sbit at 0xA2          TDI; /* Port C.2 */
 #define bmTDIOE       bmBIT2
-#define SetTDI(x)     do{TDI=x}while(0)
+#define SetTDI(x)     do{TDI=(x);}while(0)
 
 /* JTAG TMS, AS/PS nCONFIG */
 
 sbit at 0xA3          TMS; /* Port C.3 */
 #define bmTMSOE       bmBIT3
-#define SetTMS(x)     do{TMS=x}while(0)
+#define SetTMS(x)     do{TMS=(x);}while(0)
 
 /* JTAG TDO, AS/PS CONF_DONE */
 
@@ -75,13 +75,13 @@ sbit at 0xA1          TDO; /* Port C.1 */
 
   sbit at 0xA4        NCS; /* Port C.4 */
   #define bmNCSOE     bmBIT4
-  #define SetNCS(x)   do{NCS=x}while(0)
+  #define SetNCS(x)   do{NCS=(x);}while(0)
 
   /* AS Mode nCE */
 
   sbit at 0xA5        NCE; /* Port C.5 */
   #define bmNCEOE     bmBIT5
-  #define SetNCE(x)   do{NCE=x}while(0)
+  #define SetNCE(x)   do{NCE=(x);}while(0)
 
   extern unsigned char ShiftInOut_AS(unsigned char x);
 
@@ -102,7 +102,7 @@ sbit at 0xA1          TDO; /* Port C.1 */
 
   sbit at 0xA7        OELED; /* Port C.7 */
   #define bmOELEDOE   bmBIT7
-  #define SetOELED(x) do{OELED=x}while(0)
+  #define SetOELED(x) do{OELED=(x);}while(0)
 
 #else
 
