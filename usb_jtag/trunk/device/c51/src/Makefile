@@ -16,7 +16,7 @@ LDFLAGS+=-L ../lib
 %.rel : %.c
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
 
-std.ihx: vectors.rel usrp_main.rel usrp_common.rel usb_descriptors.rel eeprom.rel _startup.rel
+std.ihx: vectors.rel usrp_main.rel usrp_common.rel dscr.rel eeprom.rel _startup.rel
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $+ libfx2.lib
 
 boot: std.ihx
