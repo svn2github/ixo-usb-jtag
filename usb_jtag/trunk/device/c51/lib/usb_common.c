@@ -251,7 +251,7 @@ usb_handle_setup_packet (void)
       case RQ_GET_STATUS:
 	switch (bRequestType & bmRT_RECIP_MASK){
 	case bmRT_RECIP_DEVICE:
-	  EP0BUF[0] = bmGSDA_SELF_POWERED;	// FIXME app should handle
+	  EP0BUF[0] = 0;
 	  EP0BUF[1] = 0;
 	  EP0BCH = 0;
 	  EP0BCL = 2;
@@ -279,6 +279,7 @@ usb_handle_setup_packet (void)
 	  fx2_stall_ep0 ();
 	  break;
 	}
+        break;
 
       // --------------------------------
 
