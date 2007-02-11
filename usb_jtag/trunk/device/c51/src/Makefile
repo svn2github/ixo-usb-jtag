@@ -16,14 +16,19 @@ LDFLAGS+=-L ../lib
 %.rel : %.c
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
 
+default: std.ihx
+
 std.ihx: vectors.rel usrp_main.rel usrp_common.rel dscr.rel eeprom.rel hardware.rel _startup.rel
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $+ libfx2.lib
 
+.PHONY: boot
 boot: std.ihx
 	-test -e /dev/usb_jtag    && /sbin/fxload -D /dev/usb_jtag    -I std.ihx -t fx2
 	-test -e /dev/tracii_xl2  && /sbin/fxload -D /dev/tracii_xl2  -I std.ihx -t fx2
 	-test -e /dev/xilinx_xpcu && /sbin/fxload -D /dev/xilinx_xpcu -I std.ihx -t fx2
 
+dscr.rel: dscr.a51 product.inc
+eeprom.rel: eeprom.a51 product.inc
 hardware.rel: hardware.c hardware.h
 
 clean:

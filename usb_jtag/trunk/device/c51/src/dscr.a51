@@ -21,20 +21,8 @@
 ;;;-----------------------------------------------------------------------------
 
         .module usb_descriptors
-        
-        VID              = 0x16C0
-        PID              = 0x06AD
-        VERSION          = 0x0004
-        USB_VER          = 0x0110         ; Support USB version 1.10 
 
-        ;; configuration attributes
-        bmRWAKEUP        =   1 << 5
-        bmSELF_POWERED   =   1 << 6
-        bmBUS_POWERED    =   1 << 7
-
-        USB_ATTR         = bmBUS_POWERED  ; No remote wakeup, not self-powered
-        FTD_ATTR         = 0x001C         ; Set USB version, use version string, enable suspend PD
-        MAX_POWER        = 75             ; need 2*75 mA max
+        .include "product.inc"
 
         DSCR_DEVICE      =   1        ; Descriptor type: Device
         DSCR_CONFIG      =   2        ; Descriptor type: Configuration
