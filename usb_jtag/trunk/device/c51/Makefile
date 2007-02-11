@@ -37,7 +37,7 @@ LDFLAGS+=-L ${LIBDIR}
 
 default: std.ihx
 
-std.ihx: vectors.rel usbjtag.rel dscr.rel eeprom.rel hardware.rel _startup.rel ${LIBDIR}/${LIB}
+std.ihx: vectors.rel usbjtag.rel dscr.rel eeprom.rel hardware.rel startup.rel ${LIBDIR}/${LIB}
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $+ ${LIB}
 
 ${LIBDIR}/${LIB}:
@@ -58,9 +58,9 @@ ref:
 	-test -e /dev/xilinx_xpcu && /sbin/fxload -D /dev/xilinx_xpcu -I ${REF} -t fx2
 
 
-dscr.rel: dscr.a51 product.inc
-eeprom.rel: eeprom.a51 product.inc
-usbjtag.rel: usbjtag.c hardware.h
+dscr.rel: dscr.a51
+eeprom.rel: eeprom.c eeprom.h
+usbjtag.rel: usbjtag.c hardware.h eeprom.h
 hardware.rel: hardware.c hardware.h
 
 clean:

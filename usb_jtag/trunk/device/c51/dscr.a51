@@ -22,7 +22,13 @@
 
         .module usb_descriptors
 
-        .include "product.inc"
+        VID              = 0x16C0         ; Vendor ID 0x16C0  
+        PID              = 0x06AD         ; Product ID 0x06AD 
+        VERSION          = 0x0004         ; Product Version (4 indicates *BM device) 
+        USB_VER          = 0x0110         ; Support USB version 1.10 
+        USB_ATTR         = 0x80           ; Bus powered, not self-powered, no remote wakeup
+        FTD_ATTR         = 0x001C         ; Set USB version, use version string, enable suspend PD
+        MAX_POWER        = 75             ; need 2*75 mA max
 
         DSCR_DEVICE      =   1        ; Descriptor type: Device
         DSCR_CONFIG      =   2        ; Descriptor type: Configuration
@@ -66,18 +72,21 @@
 _high_speed_device_descr::
         .db        DSCR_DEVICE_LEN
         .db        DSCR_DEVICE
+_dscr_usbver::
         .db        <USB_VER         ; Specification version (LSB)
         .db        >USB_VER         ; Specification version (MSB)
         .db        0x00             ; device class (vendor specific)
         .db        0x00             ; device subclass (vendor specific)
         .db        0x00             ; device protocol (vendor specific)
         .db        64               ; bMaxPacketSize0 for endpoint 0
+_dscr_vidpidver::
         .db        <VID             ; idVendor
         .db        >VID             ; idVendor
         .db        <PID             ; idProduct
         .db        >PID             ; idProduct
         .db        <VERSION         ; bcdDevice
         .db        >VERSION         ; bcdDevice
+_dscr_strorder::
         .db        SI_VENDOR        ; iManufacturer (string index)
         .db        SI_PRODUCT       ; iProduct (string index)
         .db        SI_SERIAL        ; iSerial number (string index)
@@ -105,6 +114,7 @@ _high_speed_config_descr::
         .db        1                ; bNumInterfaces
         .db        1                ; bConfigurationValue
         .db        0                ; iConfiguration
+_dscr_attrpow::
         .db        USB_ATTR         ; bmAttributes
         .db        MAX_POWER        ; bMaxPower [Unit: 0.5 mA]
 
@@ -244,6 +254,7 @@ _string_descriptors_end:
         SI_NONE = 0
         ;; str0 contains the language ID's.
         .even
+_str0::
 str0:   .db        str0_end - str0
         .db        DSCR_STRING
         .db        0
@@ -254,6 +265,7 @@ str0_end:
 
         SI_VENDOR = 1
         .even
+_str1::
 str1:   .db        str1_end - str1
         .db        DSCR_STRING
         .db        'i, 0            ; 16-bit unicode
@@ -266,6 +278,7 @@ str1_end:
 
         SI_PRODUCT = 2
         .even
+_str2::
 str2:   .db        str2_end - str2
         .db        DSCR_STRING
         .db        'U, 0
@@ -283,6 +296,7 @@ str2_end:
 
         SI_SERIAL = 3
         .even
+_str3::
 str3:   .db        str3_end - str3
         .db        DSCR_STRING
         .db        '0, 0

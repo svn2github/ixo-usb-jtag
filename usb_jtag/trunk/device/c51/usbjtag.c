@@ -30,9 +30,8 @@
 
 #include "syncdelay.h"
 
+#include "eeprom.h"
 #include "hardware.h"
-
-extern const unsigned char eeprom[256];
 
 //-----------------------------------------------------------------------------
 // Define USE_MOD256_OUTBUFFER:
@@ -406,6 +405,7 @@ static void main_loop(void)
 
 void main(void)
 {
+  eeprom_init();
   usb_jtag_init();
 
   EA = 0; // disable all interrupts

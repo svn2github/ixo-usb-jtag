@@ -39,6 +39,10 @@ As is, the code assumes the following pin assignment:
 Other assignments are possible; you'll have to adapt the definitions in hardware.h and maybe
 in hardware.c, too.
 
+The USB identification data (vendor/product ID, strings, ...) can be modified in dscr.a51. My
+firmware emulates the 128 byte EEPROM that usually holds configuration data for the FT245 and
+which can be read from the host; its content is computed from the data in dscr.a51 as well.
+
 The WAKEUP pin should be high for the re-numeration to work reliably (thanks Jean/fpga4fun!)
 
 NB, the "Xilinx Platform Cable USB" is based on a FX2 chip. In theory, it is possible to
@@ -51,6 +55,7 @@ but I'm not finished with it yet...
 Changes since previous release on 2007-01-28:
   - New FX2 code, based on USRP2 from the GNU Radio Project;
   - Firmware can now be compiled using SDCC 2.6. No more Keil support.
+  - EEPROM content is automatically computed from descriptors, including checksum.
 
 Changes since initial release on 2006-04-23:
   - added this readme.txt
