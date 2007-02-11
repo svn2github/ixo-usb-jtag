@@ -1,30 +1,30 @@
-;;; -*- asm -*-
-;;;
-;;;-----------------------------------------------------------------------------
-;;; Makefile for usb_jtag FX2 firmware
-;;;-----------------------------------------------------------------------------
-;;; Copyright 2007 Kolja Waschk, ixo.de
-;;;-----------------------------------------------------------------------------
-;;; This code is part of usbjtag. usbjtag is free software; you can redistribute
-;;; it and/or modify it under the terms of the GNU General Public License as
-;;; published by the Free Software Foundation; either version 2 of the License,
-;;; or (at your option) any later version. usbjtag is distributed in the hope
-;;; that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
-;;; warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.  You should have received a
-;;; copy of the GNU General Public License along with this program in the file
-;;; COPYING; if not, write to the Free Software Foundation, Inc., 51 Franklin
-;;; St, Fifth Floor, Boston, MA  02110-1301  USA
-;;;-----------------------------------------------------------------------------
+## -*- asm -*-
+##
+##-----------------------------------------------------------------------------
+## Makefile for usb_jtag FX2 firmware
+##-----------------------------------------------------------------------------
+## Copyright 2007 Kolja Waschk, ixo.de
+##-----------------------------------------------------------------------------
+## This code is part of usbjtag. usbjtag is free software; you can redistribute
+## it and/or modify it under the terms of the GNU General Public License as
+## published by the Free Software Foundation; either version 2 of the License,
+## or (at your option) any later version. usbjtag is distributed in the hope
+## that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+## warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.  You should have received a
+## copy of the GNU General Public License along with this program in the file
+## COPYING; if not, write to the Free Software Foundation, Inc., 51 Franklin
+## St, Fifth Floor, Boston, MA  02110-1301  USA
+##-----------------------------------------------------------------------------
+
+LIBDIR=fx2
+LIB=libfx2.lib
 
 CC=sdcc
-CFLAGS+=-mmcs51 --no-xinit-opt -I../include
+CFLAGS+=-mmcs51 --no-xinit-opt -I${LIBDIR}
 
 AS=asx8051
 ASFLAGS+=-plosgff
-
-LIBDIR=../lib
-LIB=libfx2.lib
 
 LDFLAGS=--code-loc 0x0000 --code-size 0x1800
 LDFLAGS+=--xram-loc 0x1800 --xram-size 0x0800
@@ -66,6 +66,7 @@ usbjtag.rel: usbjtag.c hardware.h
 hardware.rel: hardware.c hardware.h
 
 clean:
+	make -C ${LIBDIR} clean
 	rm -f *.lst *.asm *.lib *.sym *.rel *.mem *.map *.rst *.lnk *.ihx
 
 
