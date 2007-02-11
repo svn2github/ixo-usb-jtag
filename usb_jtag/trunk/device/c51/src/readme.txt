@@ -2,8 +2,9 @@ usb_jtag using Cypress FX2 chip
 ===============================
 
 The code in this directory is for Cypress FX2 (e.g. CY7C68013A) and can be compiled with
-the Keil compiler. When I developed this, it was possible to compile it with the evaluation
-version of the compiler (the resulting code is less than 4 kByte).
+the SDCC compiler (I tried version 2.6 as shipped with Ubuntu 6.10). Once I had a version
+that could be compiled with Keil tools (until early 2007), but switched to SDCC because I 
+usually develop on a Linux host.
 
 No logic beside the FX2 itself and only a few external components are required for a basic
 JTAG adapter. I don't have detailed schematics available; my test setup consists of a FX2
@@ -35,7 +36,8 @@ As is, the code assumes the following pin assignment:
  Port C.2: TCK
  Port C.3: TMS
 
-Other assignments are possible; you'll have to adapt the code in usbjtag.c and shift.a51.
+Other assignments are possible; you'll have to adapt the definitions in hardware.h and maybe
+in hardware.c, too.
 
 The WAKEUP pin should be high for the re-numeration to work reliably (thanks Jean/fpga4fun!)
 
@@ -45,6 +47,10 @@ write code for that adapter to make it compatible with my adapter drivers on the
 an additional CPLD to the FX2 for high-speed serial/parallel conversion and you
 would have to find out how to communicate with that CPLD first. Not impossible,
 but I'm not finished with it yet...
+
+Changes since previous release on 2007-01-28:
+  - New FX2 code, based on USRP2 from the GNU Radio Project;
+  - Firmware can now be compiled using SDCC 2.6. No more Keil support.
 
 Changes since initial release on 2006-04-23:
   - added this readme.txt
