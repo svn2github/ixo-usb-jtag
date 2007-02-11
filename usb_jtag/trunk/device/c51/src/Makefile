@@ -41,6 +41,7 @@ ref:
 
 dscr.rel: dscr.a51 product.inc
 eeprom.rel: eeprom.a51 product.inc
+usbjtag.rel: usbjtag.c hardware.h
 hardware.rel: hardware.c hardware.h
 
 clean:
