@@ -20,48 +20,35 @@
 ;;; Boston, MA 02110-1301, USA.
 ;;;
         
-;;; USB Descriptor table for the USRP
-;;; 
-;;; We're a high-speed only device (480 Mb/sec) with 1 configuration
-;;; and 3 interfaces.  
-;;; 
-;;;        interface 0:        command and status (ep0 COMMAND)
-;;;        interface 1:        Transmit path (ep2 OUT BULK)
-;;;        interface 2:        Receive path (ep6 IN BULK)
-
         .module usb_descriptors
         
-        VID_FREE         = 0xfffe        ; Free Software Folks
-        PID_USRP         = 0x0002        ; USRP
-
-        ;; We distinguish configured from unconfigured USRPs using the Device ID.
-        ;; If the MSB of the DID is 0, the device is unconfigured.
-        ;; The LSB of the DID is reserved for hardware revs.
+        VID              = 0x16C0
+        PID              = 0x06AD
+        VERSION          = 0x0004
         
-        DID_USRP         = 0x0100        ; Device ID (bcd)
-
+        DSCR_DEVICE      =   1        ; Descriptor type: Device
+        DSCR_CONFIG      =   2        ; Descriptor type: Configuration
+        DSCR_STRING      =   3        ; Descriptor type: String
+        DSCR_INTRFC      =   4        ; Descriptor type: Interface
+        DSCR_ENDPNT      =   5        ; Descriptor type: Endpoint
+        DSCR_DEVQUAL     =   6        ; Descriptor type: Device Qualifier
         
-        DSCR_DEVICE         =   1        ; Descriptor type: Device
-        DSCR_CONFIG         =   2        ; Descriptor type: Configuration
-        DSCR_STRING         =   3        ; Descriptor type: String
-        DSCR_INTRFC         =   4        ; Descriptor type: Interface
-        DSCR_ENDPNT         =   5        ; Descriptor type: Endpoint
-        DSCR_DEVQUAL         =   6        ; Descriptor type: Device Qualifier
-        
-        DSCR_DEVICE_LEN         =  18
+        DSCR_DEVICE_LEN  =  18
         DSCR_CONFIG_LEN  =   9
         DSCR_INTRFC_LEN  =   9
         DSCR_ENDPNT_LEN  =   7
         DSCR_DEVQUAL_LEN =  10
         
-        ET_CONTROL         =   0        ; Endpoint type: Control
-        ET_ISO                 =   1        ; Endpoint type: Isochronous
-        ET_BULK                 =   2        ; Endpoint type: Bulk
-        ET_INT                 =   3        ; Endpoint type: Interrupt
+        ET_CONTROL       =   0        ; Endpoint type: Control
+        ET_ISO           =   1        ; Endpoint type: Isochronous
+        ET_BULK          =   2        ; Endpoint type: Bulk
+        ET_INT           =   3        ; Endpoint type: Interrupt
         
         
         ;; configuration attributes
-        bmSELF_POWERED        =        1 << 6
+        bmRWAKEUP        =   1 << 5
+        bmSELF_POWERED   =   1 << 6
+        bmBUS_POWERED    =   1 << 7
 
 ;;; --------------------------------------------------------
 ;;;        external ram data
@@ -83,41 +70,38 @@
         ;; at 0xE000 absolute.  This means that the maximimum length of this
         ;; segment is 480 bytes, leaving room for the two hash slots 
         ;; at 0xE1EO to 0xE1FF.  
-        ;; 
-        ;; As of July 7, 2004, this segment is 326 bytes long
         
 _high_speed_device_descr::
         .db        DSCR_DEVICE_LEN
         .db        DSCR_DEVICE
-        .db        <0x0200                ; Specification version (LSB)
-        .db        >0x0200                ; Specification version (MSB)
-        .db        0xff                ; device class (vendor specific)
-        .db        0xff                ; device subclass (vendor specific)
-        .db        0xff                ; device protocol (vendor specific)
-        .db        64                ; bMaxPacketSize0 for endpoint 0
-        .db        <VID_FREE        ; idVendor
-        .db        >VID_FREE        ; idVendor
-        .db        <PID_USRP        ; idProduct
-        .db        >PID_USRP        ; idProduct
+        .db        <0x0110          ; Specification version (LSB)
+        .db        >0x0110          ; Specification version (MSB)
+        .db        0x00             ; device class (vendor specific)
+        .db        0x00             ; device subclass (vendor specific)
+        .db        0x00             ; device protocol (vendor specific)
+        .db        64               ; bMaxPacketSize0 for endpoint 0
+        .db        <VID             ; idVendor
+        .db        >VID             ; idVendor
+        .db        <PID             ; idProduct
+        .db        >PID             ; idProduct
 _usb_desc_hw_rev_binary_patch_location_0::
-        .db        <DID_USRP        ; bcdDevice
-        .db        >DID_USRP        ; bcdDevice
+        .db        <VERSION         ; bcdDevice
+        .db        >VERSION         ; bcdDevice
         .db        SI_VENDOR        ; iManufacturer (string index)
-        .db        SI_PRODUCT        ; iProduct (string index)
+        .db        SI_PRODUCT       ; iProduct (string index)
         .db        SI_SERIAL        ; iSerial number (string index)
         .db        1                ; bNumConfigurations
         
-;;; describes the other speed (12Mb/sec)
         .even
 _high_speed_devqual_descr::
         .db        DSCR_DEVQUAL_LEN
         .db        DSCR_DEVQUAL
-        .db        <0x0200                ; bcdUSB (LSB)
-        .db        >0x0200                ; bcdUSB (MSB)
-        .db        0xff                ; bDeviceClass
-        .db        0xff                ; bDeviceSubClass
-        .db        0xff                ; bDeviceProtocol
-        .db        64                ; bMaxPacketSize0
+        .db        <0x0110          ; bcdUSB (LSB)
+        .db        >0x0110          ; bcdUSB (MSB)
+        .db        0xFF             ; bDeviceClass
+        .db        0xFF             ; bDeviceSubClass
+        .db        0xFF             ; bDeviceProtocol
+        .db        64               ; bMaxPacketSize0
         .db        1                ; bNumConfigurations (one config at 12Mb/sec)
         .db        0                ; bReserved
         
@@ -127,66 +111,42 @@ _high_speed_config_descr::
         .db        DSCR_CONFIG
         .db        <(_high_speed_config_descr_end - _high_speed_config_descr) ; LSB
         .db        >(_high_speed_config_descr_end - _high_speed_config_descr) ; MSB
-        .db        3                ; bNumInterfaces
+        .db        1                ; bNumInterfaces
         .db        1                ; bConfigurationValue
         .db        0                ; iConfiguration
-        .db        0x80 | bmSELF_POWERED ; bmAttributes
-        .db        0                ; bMaxPower
+        .db        bmBUS_POWERED    ; bmAttributes
+        .db        75               ; bMaxPower [Unit: 0.5 mA]
 
-        ;; interface descriptor 0 (command & status, ep0 COMMAND)
+        ;; interface descriptor
         
         .db        DSCR_INTRFC_LEN
         .db        DSCR_INTRFC
         .db        0                ; bInterfaceNumber (zero based)
         .db        0                ; bAlternateSetting
-        .db        0                ; bNumEndpoints
-        .db        0xff                ; bInterfaceClass (vendor specific)
-        .db        0xff                ; bInterfaceSubClass (vendor specific)
-        .db        0xff                ; bInterfaceProtocol (vendor specific)
-        .db        SI_COMMAND_AND_STATUS        ; iInterface (description)
+        .db        2                ; bNumEndpoints
+        .db        0xFF             ; bInterfaceClass (vendor specific)
+        .db        0xFF             ; bInterfaceSubClass (vendor specific)
+        .db        0xFF             ; bInterfaceProtocol (vendor specific)
+        .db        SI_PRODUCT       ; iInterface (description)
 
-        ;; interface descriptor 1 (transmit path, ep2 OUT BULK)
-        
-        .db        DSCR_INTRFC_LEN
-        .db        DSCR_INTRFC
-        .db        1                ; bInterfaceNumber (zero based)
-        .db        0                ; bAlternateSetting
-        .db        1                ; bNumEndpoints
-        .db        0xff                ; bInterfaceClass (vendor specific)
-        .db        0xff                ; bInterfaceSubClass (vendor specific)
-        .db        0xff                ; bInterfaceProtocol (vendor specific)
-        .db        SI_TX_PATH        ; iInterface (description)
-
-        ;; interface 1's end point
+        ;; endpoint descriptor
 
         .db        DSCR_ENDPNT_LEN
         .db        DSCR_ENDPNT
-        .db        0x02                ; bEndpointAddress (ep 2 OUT)
-        .db        ET_BULK                ; bmAttributes
-        .db        <512                ; wMaxPacketSize (LSB)
-        .db        >512                ; wMaxPacketSize (MSB)
+        .db        0x81             ; bEndpointAddress (ep 1 IN)
+        .db        ET_BULK          ; bmAttributes
+        .db        <64              ; wMaxPacketSize (LSB)
+        .db        >64              ; wMaxPacketSize (MSB)
         .db        0                ; bInterval (iso only)
 
-        ;; interface descriptor 2 (receive path, ep6 IN BULK)
-        
-        .db        DSCR_INTRFC_LEN
-        .db        DSCR_INTRFC
-        .db        2                ; bInterfaceNumber (zero based)
-        .db        0                ; bAlternateSetting
-        .db        1                ; bNumEndpoints
-        .db        0xff                ; bInterfaceClass (vendor specific)
-        .db        0xff                ; bInterfaceSubClass (vendor specific)
-        .db        0xff                ; bInterfaceProtocol (vendor specific)
-        .db        SI_RX_PATH        ; iInterface (description)
-
-        ;; interface 2's end point
+        ;; endpoint descriptor
 
         .db        DSCR_ENDPNT_LEN
         .db        DSCR_ENDPNT
-        .db        0x86                ; bEndpointAddress (ep 6 IN)
-        .db        ET_BULK                ; bmAttributes
-        .db        <512                ; wMaxPacketSize (LSB)
-        .db        >512                ; wMaxPacketSize (MSB)
+        .db        0x02             ; bEndpointAddress (ep 1 IN)
+        .db        ET_BULK          ; bmAttributes
+        .db        <64              ; wMaxPacketSize (LSB)
+        .db        >64              ; wMaxPacketSize (MSB)
         .db        0                ; bInterval (iso only)
 
 _high_speed_config_descr_end:                
@@ -199,36 +159,35 @@ _high_speed_config_descr_end:
 _full_speed_device_descr::        
         .db        DSCR_DEVICE_LEN
         .db        DSCR_DEVICE
-        .db        <0x0200                ; Specification version (LSB)
-        .db        >0x0200                ; Specification version (MSB)
-        .db        0xff                ; device class (vendor specific)
-        .db        0xff                ; device subclass (vendor specific)
-        .db        0xff                ; device protocol (vendor specific)
-        .db        64                ; bMaxPacketSize0 for endpoint 0
-        .db        <VID_FREE        ; idVendor
-        .db        >VID_FREE        ; idVendor
-        .db        <PID_USRP        ; idProduct
-        .db        >PID_USRP        ; idProduct
+        .db        <0x0110          ; Specification version (LSB)
+        .db        >0x0110          ; Specification version (MSB)
+        .db        0xFF             ; device class (vendor specific)
+        .db        0xFF             ; device subclass (vendor specific)
+        .db        0xFF             ; device protocol (vendor specific)
+        .db        64               ; bMaxPacketSize0 for endpoint 0
+        .db        <VID             ; idVendor
+        .db        >VID             ; idVendor
+        .db        <PID             ; idProduct
+        .db        >PID             ; idProduct
 _usb_desc_hw_rev_binary_patch_location_1::
-        .db        <DID_USRP        ; bcdDevice
-        .db        >DID_USRP        ; bcdDevice
+        .db        <VERSION         ; bcdDevice
+        .db        >VERSION         ; bcdDevice
         .db        SI_VENDOR        ; iManufacturer (string index)
-        .db        SI_PRODUCT        ; iProduct (string index)
-        .db        SI_NONE                ; iSerial number (None)
+        .db        SI_PRODUCT       ; iProduct (string index)
+        .db        SI_NONE          ; iSerial number (None)
         .db        1                ; bNumConfigurations
-        
         
 ;;; describes the other speed (480Mb/sec)
         .even
 _full_speed_devqual_descr::
         .db        DSCR_DEVQUAL_LEN
         .db        DSCR_DEVQUAL
-        .db        <0x0200                ; bcdUSB
-        .db        >0x0200                ; bcdUSB
-        .db        0xff                ; bDeviceClass
-        .db        0xff                ; bDeviceSubClass
-        .db        0xff                ; bDeviceProtocol
-        .db        64                ; bMaxPacketSize0
+        .db        <0x0110          ; bcdUSB
+        .db        >0x0110          ; bcdUSB
+        .db        0xFF             ; bDeviceClass
+        .db        0xFF             ; bDeviceSubClass
+        .db        0xFF             ; bDeviceProtocol
+        .db        64               ; bMaxPacketSize0
         .db        1                ; bNumConfigurations (one config at 480Mb/sec)
         .db        0                ; bReserved
         
@@ -241,8 +200,8 @@ _full_speed_config_descr::
         .db        1                ; bNumInterfaces
         .db        1                ; bConfigurationValue
         .db        0                ; iConfiguration
-        .db        0x80 | bmSELF_POWERED ; bmAttributes
-        .db        0                ; bMaxPower
+        .db        bmBUS_POWERED    ; bmAttributes
+        .db        75               ; bMaxPower [Unit: 0.5 mA]
 
         ;; interface descriptor 0 (command & status, ep0 COMMAND)
         
@@ -251,10 +210,42 @@ _full_speed_config_descr::
         .db        0                ; bInterfaceNumber (zero based)
         .db        0                ; bAlternateSetting
         .db        0                ; bNumEndpoints
-        .db        0xff                ; bInterfaceClass (vendor specific)
-        .db        0xff                ; bInterfaceSubClass (vendor specific)
-        .db        0xff                ; bInterfaceProtocol (vendor specific)
-        .db        SI_COMMAND_AND_STATUS        ; iInterface (description)
+        .db        0xff             ; bInterfaceClass (vendor specific)
+        .db        0xff             ; bInterfaceSubClass (vendor specific)
+        .db        0xff             ; bInterfaceProtocol (vendor specific)
+        .db        SI_PRODUCT       ; iInterface (description)
+
+        ;; interface descriptor
+        
+        .db        DSCR_INTRFC_LEN
+        .db        DSCR_INTRFC
+        .db        0                ; bInterfaceNumber (zero based)
+        .db        0                ; bAlternateSetting
+        .db        2                ; bNumEndpoints
+        .db        0xFF             ; bInterfaceClass (vendor specific)
+        .db        0xFF             ; bInterfaceSubClass (vendor specific)
+        .db        0xFF             ; bInterfaceProtocol (vendor specific)
+        .db        SI_PRODUCT       ; iInterface (description)
+
+        ;; endpoint descriptor
+
+        .db        DSCR_ENDPNT_LEN
+        .db        DSCR_ENDPNT
+        .db        0x81             ; bEndpointAddress (ep 1 IN)
+        .db        ET_BULK          ; bmAttributes
+        .db        <64              ; wMaxPacketSize (LSB)
+        .db        >64              ; wMaxPacketSize (MSB)
+        .db        0                ; bInterval (iso only)
+
+        ;; endpoint descriptor
+
+        .db        DSCR_ENDPNT_LEN
+        .db        DSCR_ENDPNT
+        .db        0x02             ; bEndpointAddress (ep 1 IN)
+        .db        ET_BULK          ; bmAttributes
+        .db        <64              ; wMaxPacketSize (LSB)
+        .db        >64              ; wMaxPacketSize (MSB)
+        .db        0                ; bInterval (iso only)
         
 _full_speed_config_descr_end:        
         
@@ -270,9 +261,6 @@ _string_descriptors::
         .db        <str1, >str1
         .db        <str2, >str2
         .db        <str3, >str3
-        .db        <str4, >str4
-        .db        <str5, >str5
-        .db        <str6, >str6
 _string_descriptors_end:
 
         SI_NONE = 0
@@ -282,33 +270,20 @@ str0:        .db        str0_end - str0
         .db        DSCR_STRING
         .db        0
         .db        0
-        .db        <0x0409                ; magic code for US English (LSB)
-        .db        >0x0409                ; magic code for US English (MSB)
+        .db        <0x0409          ; magic code for US English (LSB)
+        .db        >0x0409          ; magic code for US English (MSB)
 str0_end:
 
         SI_VENDOR = 1
         .even
 str1:        .db        str1_end - str1
         .db        DSCR_STRING
-        .db        'F, 0                ; 16-bit unicode
-        .db        'r, 0
-        .db        'e, 0
-        .db        'e, 0
-        .db        ' , 0
-        .db        'S, 0
+        .db        'i, 0            ; 16-bit unicode
+        .db        'x, 0
         .db        'o, 0
-        .db        'f, 0
-        .db        't, 0
-        .db        'w, 0
-        .db        'a, 0
-        .db        'r, 0
+        .db        '., 0
+        .db        'd, 0
         .db        'e, 0
-        .db        ' , 0
-        .db        'F, 0
-        .db        'o, 0
-        .db        'l, 0
-        .db        'k, 0
-        .db        's, 0
 str1_end:
 
         SI_PRODUCT = 2
@@ -317,88 +292,30 @@ str2:        .db        str2_end - str2
         .db        DSCR_STRING
         .db        'U, 0
         .db        'S, 0
-        .db        'R, 0
-        .db        'P, 0
-        .db        ' , 0
-        .db        'R, 0
-        .db        'e, 0
-        .db        'v, 0
-        .db        ' , 0
-_usb_desc_hw_rev_ascii_patch_location_0::
-        .db        '?, 0
-str2_end:
-
-        SI_COMMAND_AND_STATUS = 3
-        .even
-str3:        .db        str3_end - str3
-        .db        DSCR_STRING
-        .db        'C, 0
-        .db        'o, 0
-        .db        'm, 0
-        .db        'm, 0
-        .db        'a, 0
-        .db        'n, 0
-        .db        'd, 0
-        .db        ' , 0
-        .db        '&, 0
-        .db        ' , 0
-        .db        'S, 0
-        .db        't, 0
-        .db        'a, 0
-        .db        't, 0
-        .db        'u, 0
-        .db        's, 0
-str3_end:
-
-        SI_TX_PATH = 4
-        .even
-str4:        .db        str4_end - str4
-        .db        DSCR_STRING
+        .db        'B, 0
+        .db        '-, 0
+        .db        'J, 0
         .db        'T, 0
-        .db        'r, 0
-        .db        'a, 0
-        .db        'n, 0
-        .db        's, 0
-        .db        'm, 0
-        .db        'i, 0
-        .db        't, 0
-        .db        ' , 0
-        .db        'P, 0
-        .db        'a, 0
-        .db        't, 0
-        .db        'h, 0
-str4_end:
-
-        SI_RX_PATH = 5
-        .even
-str5:        .db        str5_end - str5
-        .db        DSCR_STRING
-        .db        'R, 0
-        .db        'e, 0
-        .db        'c, 0
-        .db        'e, 0
-        .db        'i, 0
-        .db        'v, 0
-        .db        'e, 0
-        .db        ' , 0
-        .db        'P, 0
-        .db        'a, 0
-        .db        't, 0
-        .db        'h, 0
-str5_end:
+        .db        'A, 0
+        .db        'G, 0
+        .db        '-, 0
+        .db        'I, 0
+_usb_desc_hw_rev_ascii_patch_location_0::
+        .db        'F, 0
+str2_end:
 
         SI_SERIAL = 6
         .even
-str6:        .db        str6_end - str6
+str3:        .db        str3_end - str3
         .db        DSCR_STRING
 _usb_desc_serial_number_ascii::
-        .db        '3, 0
-        .db        '., 0
-        .db        '1, 0
-        .db        '4, 0
-        .db        '1, 0
-        .db        '5, 0
-        .db        '9, 0
-        .db        '3, 0
-str6_end:
+        .db        '0, 0
+        .db        '0, 0
+        .db        '0, 0
+        .db        '0, 0
+        .db        '0, 0
+        .db        '0, 0
+        .db        '0, 0
+        .db        '0, 0
+str3_end:
 
