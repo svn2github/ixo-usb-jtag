@@ -21,9 +21,12 @@ LDFLAGS+=-L ${LIBDIR}
 
 default: std.ihx
 
-
 std.ihx: vectors.rel usbjtag.rel dscr.rel eeprom.rel hardware.rel _startup.rel ${LIBDIR}/${LIB}
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $+ ${LIB}
+
+${LIBDIR}/${LIB}:
+	make -C ${LIBDIR}
+
 
 .PHONY: boot
 boot: std.ihx
