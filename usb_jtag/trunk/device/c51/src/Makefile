@@ -18,7 +18,7 @@ LDFLAGS+=-L ../lib
 
 default: std.ihx
 
-std.ihx: vectors.rel usrp_main.rel usrp_common.rel dscr.rel eeprom.rel hardware.rel _startup.rel
+std.ihx: vectors.rel usbjtag.rel dscr.rel eeprom.rel hardware.rel _startup.rel
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $+ libfx2.lib
 
 .PHONY: boot

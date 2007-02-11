@@ -24,9 +24,11 @@
 
         .module eeprom
 
+        .globl     _eeprom
+
 		.include "product.inc"
         
-        .area USBDESCSEG (XDATA)
+		.area CONST (CODE)
 
 _eeprom::
         .db	       0,0
@@ -52,4 +54,6 @@ _eeprom::
         .db        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
         .db        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
         .db        0x08,0xA7  ; Checksum 0xA708
+
+        .area CSEG (CODE)
 
