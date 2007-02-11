@@ -28,7 +28,7 @@ libfx2.lib: delay.rel fx2utils.rel i2c.rel isr.rel timer.rel usb_common.rel
 	for obj in $^ ; do basename $$obj .rel >> $@ ; done
 
 clean:
-	rm -f *.lst *.asm *.lib *.sym *.rel
+	rm -f *.lst *.asm *.lib *.sym *.rel *.lib
 
 
 
