@@ -22,10 +22,10 @@
 
         .module usb_descriptors
 
-        VID              = 0x16C0         ; Vendor ID 0x16C0  
-        PID              = 0x06AD         ; Product ID 0x06AD 
+        VID              = 0x09FB         ; Vendor ID 0x16C0  
+        PID              = 0x6001         ; Product ID 0x06AD 
         VERSION          = 0x0004         ; Product Version (4 indicates *BM device) 
-        USB_VER          = 0x0110         ; Support USB version 1.10 
+        USB_VER          = 0x0200         ; Support USB version 2.00
         USB_ATTR         = 0x80           ; Bus powered, not self-powered, no remote wakeup
         FTD_ATTR         = 0x001C         ; Set USB version, use version string, enable suspend PD
         MAX_POWER        = 75             ; need 2*75 mA max
@@ -268,12 +268,12 @@ str0_end:
 _str1::
 str1:   .db        str1_end - str1
         .db        DSCR_STRING
-        .db        'i, 0            ; 16-bit unicode
-        .db        'x, 0
-        .db        'o, 0
-        .db        '., 0
-        .db        'd, 0
+        .db        'A, 0            ; 16-bit unicode
+        .db        'l, 0
+        .db        't, 0
         .db        'e, 0
+        .db        'r, 0
+        .db        'a, 0
 str1_end:
 
         SI_PRODUCT = 2
@@ -285,13 +285,13 @@ str2:   .db        str2_end - str2
         .db        'S, 0
         .db        'B, 0
         .db        '-, 0
-        .db        'J, 0
-        .db        'T, 0
-        .db        'A, 0
-        .db        'G, 0
-        .db        '-, 0
-        .db        'I, 0
-        .db        'F, 0
+        .db        'B, 0
+        .db        'l, 0
+        .db        'a, 0
+        .db        's, 0
+        .db        't, 0
+        .db        'e, 0
+        .db        'r, 0
 str2_end:
 
         SI_SERIAL = 3

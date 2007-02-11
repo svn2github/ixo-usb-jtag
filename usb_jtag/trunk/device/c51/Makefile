@@ -18,6 +18,8 @@
 LIBDIR=fx2
 LIB=libfx2.lib
 
+HARDWARE=hw_basic
+
 CC=sdcc
 CFLAGS+=-mmcs51 --no-xinit-opt -I${LIBDIR}
 
@@ -29,26 +31,26 @@ LDFLAGS+=--xram-loc 0x1800 --xram-size 0x0800
 LDFLAGS+=-Wl '-b USBDESCSEG = 0xE000'
 LDFLAGS+=-L ${LIBDIR}
 
+
 %.rel : %.a51
 	$(AS) $(ASFLAGS) $<
 
 %.rel : %.c
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
 
-default: std.ihx
+default: std.hex
 
-std.ihx: vectors.rel usbjtag.rel dscr.rel eeprom.rel hardware.rel startup.rel ${LIBDIR}/${LIB}
+std.hex: vectors.rel usbjtag.rel dscr.rel eeprom.rel ${HARDWARE}.rel startup.rel ${LIBDIR}/${LIB}
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $+ ${LIB}
 
 ${LIBDIR}/${LIB}:
 	make -C ${LIBDIR}
 
-
 .PHONY: boot
-boot: std.ihx
-	-test -e /dev/usb_jtag    && /sbin/fxload -D /dev/usb_jtag    -I std.ihx -t fx2
-	-test -e /dev/tracii_xl2  && /sbin/fxload -D /dev/tracii_xl2  -I std.ihx -t fx2
-	-test -e /dev/xilinx_xpcu && /sbin/fxload -D /dev/xilinx_xpcu -I std.ihx -t fx2
+boot: std.hex
+	-test -e /dev/usb_jtag    && /sbin/fxload -D /dev/usb_jtag    -I std.hex -t fx2
+	-test -e /dev/tracii_xl2  && /sbin/fxload -D /dev/tracii_xl2  -I std.hex -t fx2
+	-test -e /dev/xilinx_xpcu && /sbin/fxload -D /dev/xilinx_xpcu -I std.hex -t fx2
 
 REF=/srv/altera/blaster.hex
 .PHONY: ref
@@ -60,11 +62,11 @@ ref:
 
 dscr.rel: dscr.a51
 eeprom.rel: eeprom.c eeprom.h
-usbjtag.rel: usbjtag.c hardware.h eeprom.h
-hardware.rel: hardware.c hardware.h
+usbjtag.rel: usbjtag.c ${HARDWARE}.h eeprom.h
+${HARDWARE}.rel: ${HARDWARE}.c ${HARDWARE}.h
 
 clean:
 	make -C ${LIBDIR} clean
-	rm -f *.lst *.asm *.lib *.sym *.rel *.mem *.map *.rst *.lnk *.ihx
+	rm -f *.lst *.asm *.lib *.sym *.rel *.mem *.map *.rst *.lnk *.hex
 
 
