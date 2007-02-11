@@ -68,7 +68,10 @@ hook_uv (unsigned char vector_number, unsigned short addr)
   
   // sanity checks
 
-  if (vector_number < UV_MIN || vector_number > UV_MAX)
+#if UV_MIN>0
+  if (vector_number < UV_MIN) return;
+#endif
+  if (vector_number > UV_MAX)
     return;
 
   if ((vector_number & 0x3) != 0)
