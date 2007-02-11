@@ -1,5 +1,5 @@
 ;;; -*- asm -*-
-
+;;;
 ;;;-----------------------------------------------------------------------------
 ;;; "EEPROM" Content
 ;;; If you want to simulate the EEPROM attached to the FT245BM in the
@@ -18,7 +18,7 @@
 ;;; COPYING; if not, write to the Free Software Foundation, Inc., 51 Franklin
 ;;; St, Fifth Floor, Boston, MA  02110-1301  USA
 ;;;-----------------------------------------------------------------------------
-
+;;;
 ;;; If you make changes to the EEPROM, you also need to update
 ;;; the checksum at the end. Try the opensourced libftdi/ftdi_eeprom!
 
