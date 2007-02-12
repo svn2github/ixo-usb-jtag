@@ -1,4 +1,5 @@
 /*-----------------------------------------------------------------------------
+ *
  * Hardware-dependent code for usb_jtag
  *-----------------------------------------------------------------------------
  * Copyright (C) 2007 Kolja Waschk, ixo.de
@@ -17,6 +18,26 @@
  */
 
 #include "hw_xpcu_i.h"
+#include "fx2regs.h"
+#include "syncdelay.h"
+
+void HW_Init(void)
+{
+  /* The following code depends on your actual circuit design.
+     Make required changes _before_ you try the code! */
+
+  // set the CPU clock to 48MHz, enable clock output to FPGA
+  CPUCS = bmCLKOE | bmCLKSPD1;
+
+  // Use internal 48 MHz, enable output, use "Port" mode for all pins
+  IFCONFIG = bmIFCLKSRC | bm3048MHZ | bmIFCLKOE;
+
+  GPIFABORT = 0xFF;
+
+  PORTACFG = 0x00; OEA = 0x03; IOA=0x01;
+  PORTCCFG = 0x00; OEC = 0x00; IOC=0x00;
+  PORTECFG = 0x00; OEE = 0x00; IOE=0x00;
+}
 
 void ShiftOut(unsigned char c)
 {

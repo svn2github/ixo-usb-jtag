@@ -42,11 +42,12 @@ sbit at 0x80+1        OELED;
 
 //-----------------------------------------------------------------------------
 
-#define ProgIO_Init()    do{OEA=0x03; IOA=0x01; OEC=0x00; OEE=0x00; }while(0)
+#define ProgIO_Init()    HW_Init()
 #define ProgIO_Enable()  do{OEA=0x03; IOA=0x01; OEE=0x58; }while(0)
 #define ProgIO_Disable() do{OEA=0x03; IOA=0x01; OEE=0x00; }while(0)
 #define ProgIO_Deinit()  while(0){}
 
+extern void HW_Init(void);
 extern void ShiftOut(unsigned char x);
 extern unsigned char ShiftInOut(unsigned char x);
 

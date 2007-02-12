@@ -18,6 +18,23 @@
 
 #include "hw_basic.h"
 
+void HW_Init(void)
+{
+   /* The following code depends on your actual circuit design.
+      Make required changes _before_ you try the code! */
+
+   // set the CPU clock to 48MHz, enable clock output to FPGA
+   CPUCS = bmCLKOE | bmCLKSPD1;
+
+   // Use internal 48 MHz, enable output, use "Port" mode for all pins
+   IFCONFIG = bmIFCLKSRC | bm3048MHZ | bmIFCLKOE;
+
+   // power on the onboard FPGA and all other VCCs, de-assert RESETN
+   IOE = 0x1F;
+   OEE = 0x1F;
+   mdelay(500); // wait for supply to come up
+}
+
 void ShiftOut(unsigned char c)
 {
   (void)c;

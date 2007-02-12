@@ -119,11 +119,12 @@ sbit at 0xA1          TDO; /* Port C.1 */
 #define bmPROGOUTOE (bmTCKOE|bmTDIOE|bmTMSOE|bmNCEOE|bmNCSOE|bmOELEDOE)
 #define bmPROGINOE  (bmTDOOE|bmASDOOE)
 
-#define ProgIO_Init()    while(0){}
+#define ProgIO_Init()    HW_Init()
 #define ProgIO_Enable()  do{OEC=(OEC&~bmPROGINOE)|bmPROGOUTOE;}while(0)
 #define ProgIO_Disable() do{OEC=OEC&~(bmPROGINOE|bmPROGOUTOE);}while(0)
 #define ProgIO_Deinit()  while(0){}
 
+extern void HW_Init(void);
 extern void ShiftOut(unsigned char x);
 extern unsigned char ShiftInOut(unsigned char x);
 
