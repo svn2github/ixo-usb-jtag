@@ -65,9 +65,7 @@
         ;; hence when they're concatenated together, even doesn't work.)
         ;; 
         ;; We work around this by telling the linker to put USBDESCSEG
-        ;; at 0xE000 absolute.  This means that the maximimum length of this
-        ;; segment is 480 bytes, leaving room for the two hash slots 
-        ;; at 0xE1EO to 0xE1FF.  
+        ;; at 0xE100 absolute, just after the output buffer (see usbjtag.c)
         
 _high_speed_device_descr::
         .db        DSCR_DEVICE_LEN

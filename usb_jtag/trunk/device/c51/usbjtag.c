@@ -50,7 +50,7 @@
 // downloading large amounts of data _to_ the target, there is no output
 // and thus the output buffer isn't used at all and doesn't slow down things.
 
-#undef USE_MOD256_OUTBUFFER
+#define USE_MOD256_OUTBUFFER 1
 
 //-----------------------------------------------------------------------------
 // Global data
@@ -73,11 +73,10 @@ static WORD Pending;
 #endif
 
 #ifdef USE_MOD256_OUTBUFFER
-#error MOD256_OUTBUFFER not yet implemented: 0xE000 address conflict with dscr.a51
   /* Size of output buffer must be exactly 256 */
   #define OUTBUFFER_LEN 0x100
   /* Output buffer must begin at some address with lower 8 bits all zero */
-  xdata at 0xE000 BYTE xdata OutBuffer[OUTBUFFER_LEN];
+  xdata at 0xE000 BYTE OutBuffer[OUTBUFFER_LEN];
 #else
   #define OUTBUFFER_LEN 0x200
   static xdata BYTE OutBuffer[OUTBUFFER_LEN];
@@ -96,27 +95,9 @@ void usb_jtag_init(void)              // Called once at startup
    FirstDataInOutBuffer = 0;
    FirstFreeInOutBuffer = 0;
 
-   /* The following code depends on your actual circuit design.
-      Make required changes _before_ you try the code! */
-
-   // set the CPU clock to 48MHz, enable clock output to FPGA
-   CPUCS = bmCLKOE | bmCLKSPD1;
-
-   // Use internal 48 MHz, enable output, use "Port" mode for all pins
-   IFCONFIG = bmIFCLKSRC | bm3048MHZ | bmIFCLKOE;
-
-#if 0
-   // power on the FPGA and all other VCCs, de-assert RESETN
-   IOE = 0x1F;
-   OEE = 0x1F;
-   mdelay(500); // wait for supply to come up
-#endif
-
    ProgIO_Init();
+
    ProgIO_Enable();
-
-
-   // The remainder of the code however should be left unchanged...
 
    // Make Timer2 reload at 100 Hz to trigger Keepalive packets
 
@@ -132,20 +113,34 @@ void usb_jtag_init(void)              // Called once at startup
    APTR1FZ = 1; // Don't freeze
    APTR2FZ = 1; // Don't freeze
 
-   // we are just using the default values, yes this is not necessary...
-   EP1OUTCFG = 0xA0;
-   EP1INCFG = 0xA0;
-   SYNCDELAY;                    // see TRM section 15.14
-   EP2CFG = 0xA2;
-   SYNCDELAY;                    // 
-   EP4CFG = 0xA0;
-   SYNCDELAY;                    // 
-   EP6CFG = 0xE2;
-   SYNCDELAY;                    // 
-   EP8CFG = 0xE0;
+   // define endpoint configuration
+
+   FIFORESET = 0x80; SYNCDELAY;    // From now on, NAK all
+   REVCTL = 3; SYNCDELAY;          // Allow FW access to FIFO buffer
+
+   EP1OUTCFG  = 0xA0; SYNCDELAY;
+   EP1INCFG   = 0xA0; SYNCDELAY;
+
+   EP2FIFOCFG = 0x00; SYNCDELAY;
+   FIFORESET  = 0x02; SYNCDELAY;
+   EP2CFG     = 0xA2; SYNCDELAY;
+
+   EP4FIFOCFG = 0x00; SYNCDELAY;
+   FIFORESET  = 0x04; SYNCDELAY;
+   EP4CFG     = 0xA0; SYNCDELAY;
+
+   EP6FIFOCFG = 0x00; SYNCDELAY;
+   FIFORESET  = 0x06; SYNCDELAY;
+   EP6CFG     = 0xE2; SYNCDELAY;
+
+   EP8FIFOCFG = 0x00; SYNCDELAY;
+   FIFORESET  = 0x08; SYNCDELAY;
+   EP8CFG     = 0xE0; SYNCDELAY;
+
+   FIFORESET  = 0x00; SYNCDELAY;   // Restore normal behaviour
+   REVCTL = 0; SYNCDELAY;          // Reset FW access to FIFO buffer
 
    // out endpoints do not come up armed
-   
    // since the defaults are double buffered we must write dummy byte counts twice
    SYNCDELAY;                    // 
    EP2BCL = 0x80;                // arm EP2OUT by writing byte count w/skip.
@@ -264,9 +259,9 @@ void usb_jtag_activity(void) // Called repeatedly while the device is idle
          while(n--)
          {
             XAUTODAT2 = XAUTODAT1;
-            AUTOPTR1H = MSB( OutBuffer ); // Stay within 256-Byte-Buffer
+            APTR1H = MSB( OutBuffer ); // Stay within 256-Byte-Buffer
          };
-         FirstDataInOutBuffer = AUTOPTR1L;
+         FirstDataInOutBuffer = APTR1L;
 #else
          APTR1H = MSB( &(OutBuffer[FirstDataInOutBuffer]) );
          APTR1L = LSB( &(OutBuffer[FirstDataInOutBuffer]) );
@@ -417,7 +412,7 @@ static void main_loop(void)
 
 void main(void)
 {
-  eeprom_init();
+
   usb_jtag_init();
 
   EA = 0; // disable all interrupts
@@ -425,7 +420,8 @@ void main(void)
   setup_autovectors ();
   usb_install_handlers ();
 
-  EIEX4 = 1; // disable INT4 FIXME
+  eeprom_init();
+
   EA = 1; // enable interrupts
 
   fx2_renumerate(); // simulates disconnect / reconnect
