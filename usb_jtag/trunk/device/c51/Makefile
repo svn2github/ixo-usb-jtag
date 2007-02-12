@@ -19,6 +19,7 @@ LIBDIR=fx2
 LIB=libfx2.lib
 #HARDWARE=hw_basic
 HARDWARE=hw_xpcu_i
+#HARDWARE=hw_xpcu_x
 
 CC=sdcc
 CFLAGS+=-mmcs51 --no-xinit-opt -I${LIBDIR} -D${HARDWARE}
@@ -28,7 +29,7 @@ ASFLAGS+=-plosgff
 
 LDFLAGS=--code-loc 0x0000 --code-size 0x1800
 LDFLAGS+=--xram-loc 0x1800 --xram-size 0x0800
-LDFLAGS+=-Wl '-b USBDESCSEG = 0xE000'
+LDFLAGS+=-Wl '-b USBDESCSEG = 0xE100'
 LDFLAGS+=-L ${LIBDIR}
 
 %.rel : %.a51
@@ -51,13 +52,14 @@ boot: std.hex
 	-test -e /dev/tracii_xl2  && /sbin/fxload -D /dev/tracii_xl2  -I std.hex -t fx2
 	-test -e /dev/xilinx_xpcu && /sbin/fxload -D /dev/xilinx_xpcu -I std.hex -t fx2
 
-REF=/srv/altera/blaster.hex
+#REF=/srv/altera/blaster.hex
+REF=/home/kawk/work/xilinx/xtern/xusbdfwu/xusbdfwu-1025.hex
+
 .PHONY: ref
 ref: 
 	-test -e /dev/usb_jtag    && /sbin/fxload -D /dev/usb_jtag    -I ${REF} -t fx2
 	-test -e /dev/tracii_xl2  && /sbin/fxload -D /dev/tracii_xl2  -I ${REF} -t fx2
 	-test -e /dev/xilinx_xpcu && /sbin/fxload -D /dev/xilinx_xpcu -I ${REF} -t fx2
-
 
 dscr.rel: dscr.a51
 eeprom.rel: eeprom.c eeprom.h
