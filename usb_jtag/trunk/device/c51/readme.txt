@@ -45,14 +45,18 @@ which can be read from the host; its content is computed from the data in dscr.a
 
 The WAKEUP pin should be high for the re-numeration to work reliably (thanks Jean/fpga4fun!)
 
-NB, the "Xilinx Platform Cable USB" is based on a FX2 chip. In theory, it is possible to
-write code for that adapter to make it compatible with my adapter drivers on the fly
-(and reversible). In practice however, it's complicated because Xilinx attaches
-an additional CPLD to the FX2 for high-speed serial/parallel conversion and you
-would have to find out how to communicate with that CPLD first. Not impossible,
-but I'm not finished with it yet...
+From this release on, there is new code to support running in the "Xilinx
+Platform Cable USB". If you select HARDWARE=hw_xpcu_i or hw_xpcu_x at the top
+of the Makefile, a firmware for the XPCU will be built. I've tested this only
+with unmodified CPLD version 18 (0x12) on a Spartan-3E starter kit, as it was
+programmed by my WebPack 8.2i. The code needs optimization; yet it is merely a
+proof of concept.
+
+ hw_xpcu_i: Access "internal" chain (the XPCU CPLD, IC3, itself)
+ hw_xpcu_x: Access "external" chain (the Spartan 3E, PROM, etc.)
 
 Changes since previous release on 2007-01-28:
+  - Initial suppport for running on Xilinx XPCU.
   - New FX2 code, based on USRP2 from the GNU Radio Project;
   - Firmware can now be compiled using SDCC 2.6. No more Keil support.
   - EEPROM content is automatically computed from descriptors, including checksum.

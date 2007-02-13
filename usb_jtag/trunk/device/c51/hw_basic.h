@@ -120,8 +120,10 @@ sbit at 0xA1          TDO; /* Port C.1 */
 #define bmPROGINOE  (bmTDOOE|bmASDOOE)
 
 #define ProgIO_Init()    HW_Init()
+#define ProgIO_Poll()    while(0){}
 #define ProgIO_Enable()  do{OEC=(OEC&~bmPROGINOE)|bmPROGOUTOE;}while(0)
-#define ProgIO_Disable() do{OEC=OEC&~(bmPROGINOE|bmPROGOUTOE);}while(0)
+/* not used yet */
+#define ProgIO_Disable() while(0){}
 #define ProgIO_Deinit()  while(0){}
 
 extern void HW_Init(void);
