@@ -43,6 +43,7 @@ sbit at 0x80+1        OELED;
 //-----------------------------------------------------------------------------
 
 #define ProgIO_Init()    HW_Init()
+#define ProgIO_Poll()    while(0){}
 #define ProgIO_Enable()  do{OEA=0x03; IOA=0x01; OEE=0x58; }while(0)
 #define ProgIO_Disable() do{OEA=0x03; IOA=0x01; OEE=0x00; }while(0)
 #define ProgIO_Deinit()  while(0){}

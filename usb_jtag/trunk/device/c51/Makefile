@@ -52,7 +52,6 @@ boot: std.hex
 	-test -e /dev/tracii_xl2  && /sbin/fxload -D /dev/tracii_xl2  -I std.hex -t fx2
 	-test -e /dev/xilinx_xpcu && /sbin/fxload -D /dev/xilinx_xpcu -I std.hex -t fx2
 
-#REF=/srv/altera/blaster.hex
 REF=/home/kawk/work/xilinx/xtern/xusbdfwu/xusbdfwu-1025.hex
 
 .PHONY: ref

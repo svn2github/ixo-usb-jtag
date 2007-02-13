@@ -34,9 +34,10 @@
 
 static unsigned char curios;
 
-const unsigned char wavedata[128] =
+const unsigned char wavedata[64] =
 {
-  /* s0: BITS=D0     NEXT/SGLCRC DATA WAIT 4
+  /* Single Write:
+     s0: BITS=D0     NEXT/SGLCRC DATA WAIT 4
      s1: BITS=       DATA WAIT 4
      s2: BITS=D1|D0  DATA WAIT 4
      s3: BITS=D1     DATA WAIT 3
@@ -50,12 +51,8 @@ const unsigned char wavedata[128] =
   1, 0, 3, 2, 2,    3, 2, 2,
   0, 0, 0, 0, 0,    0, 0, 0x3F,
 
-  4, 4, 4, 3, 0x2A, 4, 3, 7,
-  6, 2, 2, 2, 3,    2, 2, 2,
-  1, 0, 3, 2, 2,    3, 2, 2,
-  0, 0, 0, 0, 0,    0, 0, 0x3F,
-
-  /* s0: BITS=D0     WAIT 4
+  /* Single Read:
+     s0: BITS=D0     WAIT 4
      s1: BITS=       WAIT 4
      s2: BITS=D1|D0  WAIT 4
      s3: BITS=D1     WAIT 4
@@ -66,20 +63,6 @@ const unsigned char wavedata[128] =
 
   4, 4, 4, 4, 3, 0x33, 4, 7,
   0, 0, 0, 0, 0, 1,    2, 0,
-  1, 0, 3, 2, 3, 3,    2, 2,
-  0, 0, 0, 0, 0, 0,    0, 0x3F,
-
-  /* s0: BITS=D0     DATA WAIT 4
-     s1: BITS=       DATA WAIT 4
-     s2: BITS=D1|D0  DATA WAIT 4
-     s3: BITS=D1     DATA WAIT 4
-     s4: BITS=D1|D0  DATA WAIT 3
-     s5: BITS=D1|D0  DATA DP IF(RDY0) THEN 6 ELSE 3
-     s6: BITS=D1     NEXT/SGLCRC DATA WAIT 4
-     s7: BITS=D1     DATA FIN */
-
-  4, 4, 4, 4, 3, 0x33, 4, 7,
-  2, 2, 2, 2, 2, 3,    6, 2,
   1, 0, 3, 2, 3, 3,    2, 2,
   0, 0, 0, 0, 0, 0,    0, 0x3F
 };
@@ -94,32 +77,28 @@ void HW_Init(void)
   // set the CPU clock to 48MHz, enable clock output to FPGA
   CPUCS = bmCLKOE | bmCLKSPD1;
 
-  // Use internal 48 MHz, enable output, use "Port" mode for all pins
-  // IFCONFIG = bmIFCLKSRC | bm3048MHZ | bmIFCLKOE;
-  IFCONFIG = bmIFCLKSRC | bm3048MHZ | bmIFCLKOE | bmGSTATE | bmIFGPIF;
+  // Use internal 48 MHz, enable output, GPIF Master mode
+  IFCONFIG = bmIFCLKSRC | bm3048MHZ | bmIFCLKOE | bmIFGPIF;
 
-  PORTACFG = 0x00; OEA = 0xFB; IOA=0x08;
-  PORTCCFG = 0x00; OEC = 0xFF; IOC=0x00;
-  PORTECFG = 0x00; OEE = 0xD8; IOE=0x00;
-
+  PORTACFG = 0x00; OEA = 0xFB; IOA = 0x20;
+  PORTCCFG = 0x00; OEC = 0xFF; IOC = 0x10;
+  PORTECFG = 0x00; OEE = 0xFC; IOE = 0xC0;
+ 
   GPIFABORT    = 0xFF;
+
   GPIFREADYCFG = 0xA0;
   GPIFCTLCFG   = 0x00;
   GPIFIDLECS   = 0x00;
   GPIFIDLECTL  = 0x00;
-  GPIFWFSELECT = 0x02;
+  GPIFWFSELECT = 0x01;
 
+  // Copy waveform data
   AUTOPTRSETUP = 0x07;
-
-  // source
   APTR1H = MSB( &wavedata );
   APTR1L = LSB( &wavedata );
-
-  // destination
   AUTOPTRH2 = 0xE4;
   AUTOPTRL2 = 0x00;
-  // transfer
-  for ( i = 0x00; i < 128; i++ ) EXTAUTODAT2 = EXTAUTODAT1;
+  for ( i = 0; i < 64; i++ ) EXTAUTODAT2 = EXTAUTODAT1;
 
   SYNCDELAY;
   GPIFADRH      = 0x00;
@@ -135,19 +114,41 @@ void HW_Init(void)
   FLOWSTBEDGE   = 0x00;
   FLOWSTBHPERIOD = 0x00;
 
-  OEA = 0xFB; IOA = 0x20;
-  OEC = 0xFF; IOC = 0x10;
-  OEE = 0xFC; IOE = 0xC0;
-
   curios = 0;
 }
 
+unsigned char GetTDO()
+{
+  unsigned char x;
+
+  IOC = 0x41;
+
+  while(!(GPIFTRIG & 0x80));
+  x = XGPIFSGLDATLX;
+
+  while(!(GPIFTRIG & 0x80));
+  x = XGPIFSGLDATLNOX;
+
+  if(IOA & 0x20) IOA |= 0x40; else IOA &= ~0x40;
+
+  /* Activity on 2 and 0x10, but that's not the real thing it seems */
+
+  x = (x&1)?1:0;
+
+  /* LED visualization */
+  if(x) IOA=(IOA&~3)|1; else IOA=(IOA&~3)|2;
+
+  return x;
+}
+
+
 void SetPins(unsigned char x)
 {
-  IOA &= 0x7F;
   IOC = 0x81;
 
+  while(!(GPIFTRIG & 0x80));
   XGPIFSGLDATLX = x;
+
   curios = x;
 }
 
@@ -176,39 +177,7 @@ void SetTCK(unsigned char x)
    else SetPins(curios & ~0x40);
 }
 
-unsigned char GetTDO()
-{
-  unsigned char x;
-
-  IOE &= 0x04;
-  IOA &= 0x7F;
-  IOC = 0x41;
-
-  x = XGPIFSGLDATLX;
-  x = XGPIFSGLDATLNOX;
-
-#if 0
-  if(IOA & 0x20)
-  {
-    x |= 0x40;
-  }
-  else
-  {
-    x &= ~0x40;
-  }
-#endif
-  // 0x01: no activity
-  // 0x02: activity, same as 0x10
-  // 0x04: no activity
-  // 0x08: no activity
-  // 0x10: activity, same as 0x02
-  // 0x20: no activity
-  // 0x40: no activity
-  // 0x80: no activity
-
-  if(x) IOA=1; else IOA=2;
-  return(x?1:0);
-}
+static unsigned char n = 0;
 
 void ShiftOut(unsigned char c)
 {
@@ -234,12 +203,11 @@ unsigned char ShiftInOut(unsigned char c)
   carry=GetTDO()?0x80:0; SetTDI(lc&1); SetTCK(1); lc=carry|(lc>>1); SetTCK(0);
   carry=GetTDO()?0x80:0; SetTDI(lc&1); SetTCK(1); lc=carry|(lc>>1); SetTCK(0);
   carry=GetTDO()?0x80:0; SetTDI(lc&1); SetTCK(1); lc=carry|(lc>>1); SetTCK(0);
-
   carry=GetTDO()?0x80:0; SetTDI(lc&1); SetTCK(1); lc=carry|(lc>>1); SetTCK(0);
   carry=GetTDO()?0x80:0; SetTDI(lc&1); SetTCK(1); lc=carry|(lc>>1); SetTCK(0);
   carry=GetTDO()?0x80:0; SetTDI(lc&1); SetTCK(1); lc=carry|(lc>>1); SetTCK(0);
   carry=GetTDO()?0x80:0; SetTDI(lc&1); SetTCK(1); lc=carry|(lc>>1); SetTCK(0);
-
+ 
   return lc;
 }
 

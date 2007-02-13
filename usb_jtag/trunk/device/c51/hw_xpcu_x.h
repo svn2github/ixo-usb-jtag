@@ -36,18 +36,19 @@ extern unsigned char GetTDO(void);
 #define SetNCE(x)     while(0){}
 
 #define HAVE_OE_LED 1
-/* +0=green led, +1=red led */
-sbit at 0x80+1        OELED;
+sbit at 0x80+1        OELED; // red LED on S3E Starter Kit (0x80+0 is green one)
 #define SetOELED(x)   do{OELED=(x);}while(0)
 
 //-----------------------------------------------------------------------------
 
 #define ProgIO_Init()    HW_Init()
+#define ProgIO_Poll()    while(0){}
 #define ProgIO_Enable()  while(0){} 
 #define ProgIO_Disable() while(0){} 
 #define ProgIO_Deinit()  while(0){}
 
 extern void HW_Init(void);
+extern void HW_Poll(void);
 extern void ShiftOut(unsigned char x);
 extern unsigned char ShiftInOut(unsigned char x);
 

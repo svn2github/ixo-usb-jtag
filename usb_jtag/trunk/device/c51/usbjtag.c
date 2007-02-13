@@ -235,6 +235,8 @@ void OutputByte(BYTE d)
 void usb_jtag_activity(void) // Called repeatedly while the device is idle
 {
    if(!Running) return;
+
+   ProgIO_Poll();
    
    if(!(EP1INCS & bmEPBUSY))
    {
