@@ -50,6 +50,9 @@ int eeprom_test(void)
   printf("  Power 0x%02X\n", eeprom[9]);
   printf("  FTDI Flags 0x%02X\n", eeprom[10]);
 
+  int i;
+  for(i=0;i<128;i++) { printf(" %02X", eeprom[i]); }; printf("\n");
+
   return 0;
 }
 
