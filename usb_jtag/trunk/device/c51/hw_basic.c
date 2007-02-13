@@ -17,6 +17,7 @@
  */
 
 #include "hw_basic.h"
+#include "delay.h"
 
 void HW_Init(void)
 {
