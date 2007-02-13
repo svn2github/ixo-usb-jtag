@@ -412,15 +412,13 @@ static void main_loop(void)
 
 void main(void)
 {
-
-  usb_jtag_init();
-
   EA = 0; // disable all interrupts
 
+  usb_jtag_init();
+  eeprom_init();
   setup_autovectors ();
   usb_install_handlers ();
 
-  eeprom_init();
 
   EA = 1; // enable interrupts
 
