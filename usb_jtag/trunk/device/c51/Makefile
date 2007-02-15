@@ -68,8 +68,13 @@ eeprom.rel: eeprom.c eeprom.h
 usbjtag.rel: usbjtag.c hardware.h eeprom.h
 ${HARDWARE}.rel: ${HARDWARE}.c hardware.h
 
+.PHONY: clean distclean
+
 clean:
 	make -C ${LIBDIR} clean
 	rm -f *.lst *.asm *.lib *.sym *.rel *.mem *.map *.rst *.lnk *.hex
+
+distclean: clean
+
 
 
