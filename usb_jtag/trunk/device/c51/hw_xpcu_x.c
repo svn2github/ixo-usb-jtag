@@ -18,8 +18,7 @@
 
 #include "delay.h"
 #include "syncdelay.h"
-#include "hw_xpcu_x.h"
-
+#include "hardware.h"
 
 #include "isr.h"
 #include "timer.h"
@@ -31,6 +30,15 @@
 #include "usb_requests.h"
 #include "syncdelay.h"
 #include "eeprom.h"
+
+#define HAVE_OE_LED 1
+sbit at 0x80+1        OELED; // red LED on S3E Starter Kit (0x80+0 is green one)
+#define SetOELED(x)   do{OELED=(x);}while(0)
+
+void ProgIO_Poll(void)    {}
+void ProgIO_Enable(void)  {}
+void ProgiO_Disable(void) {}
+void ProgiO_Deinit(void)  {}
 
 static unsigned char curios;
 
@@ -67,7 +75,7 @@ const unsigned char wavedata[64] =
   0, 0, 0, 0, 0, 0,    0, 0x3F
 };
 
-void HW_Init(void)
+void ProgIO_Init(void)
 {
   unsigned char i;
 
@@ -177,9 +185,49 @@ void SetTCK(unsigned char x)
    else SetPins(curios & ~0x40);
 }
 
+void ProgIO_Set_State(unsigned char d)
+{
+  /* Set state of output pins:
+   *
+   * d.0 => TCK
+   * d.1 => TMS
+   * d.2 => nCE (only #ifdef HAVE_AS_MODE)
+   * d.3 => nCS (only #ifdef HAVE_AS_MODE)
+   * d.4 => TDI
+   * d.6 => LED / Output Enable
+   */
+
+  SetTCK((d & bmBIT0) ? 1 : 0);
+  SetTMS((d & bmBIT1) ? 1 : 0);
+#ifdef HAVE_AS_MODE
+  SetNCE((d & bmBIT2) ? 1 : 0);
+  SetNCS((d & bmBIT3) ? 1 : 0);
+#endif
+  SetTDI((d & bmBIT4) ? 1 : 0);
+#ifdef HAVE_OE_LED
+  SetOELED((d & bmBIT5) ? 1 : 0);
+#endif
+}
+
+unsigned char ProgIO_Set_Get_State(unsigned char d)
+{
+  ProgIO_Set_State(d);
+
+  /* Read state of input pins:
+   *
+   * TDO => d.0
+   * DATAOUT => d.1 (only #ifdef HAVE_AS_MODE)
+   */
+
+   return 2|GetTDO();
+}
+
+//-----------------------------------------------------------------------------
+
+
 static unsigned char n = 0;
 
-void ShiftOut(unsigned char c)
+void ProgIO_ShiftOut(unsigned char c)
 {
   unsigned char lc=c;
 
@@ -194,7 +242,7 @@ void ShiftOut(unsigned char c)
   SetTDI(lc&1); SetTCK(1); lc>>=1; SetTCK(0);
 }
 
-unsigned char ShiftInOut(unsigned char c)
+unsigned char ProgIO_ShiftInOut(unsigned char c)
 {
   unsigned char carry;
   unsigned char lc=c;

@@ -18,11 +18,10 @@
 LIBDIR=fx2
 LIB=libfx2.lib
 
-
 ifeq (${HARDWARE},)
-  HARDWARE=hw_basic
+  #HARDWARE=hw_basic
   #HARDWARE=hw_xpcu_i
-  #HARDWARE=hw_xpcu_x
+  HARDWARE=hw_xpcu_x
 endif
 
 CC=sdcc

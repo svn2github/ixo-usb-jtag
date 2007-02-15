@@ -151,7 +151,15 @@ void ProgIO_Init(void)
 
 void ProgIO_Set_State(unsigned char d)
 {
-  /* Set state of output pins */
+  /* Set state of output pins:
+   *
+   * d.0 => TCK
+   * d.1 => TMS
+   * d.2 => nCE (only #ifdef HAVE_AS_MODE)
+   * d.3 => nCS (only #ifdef HAVE_AS_MODE)
+   * d.4 => TDI
+   * d.6 => LED / Output Enable
+   */
 
   SetTCK((d & bmBIT0) ? 1 : 0);
   SetTMS((d & bmBIT1) ? 1 : 0);
@@ -168,12 +176,32 @@ void ProgIO_Set_State(unsigned char d)
 unsigned char ProgIO_Set_Get_State(unsigned char d)
 {
   ProgIO_Set_State(d);
-  return (GetASDO()<<1)|GetTDO();
+
+  /* Read state of input pins:
+   *
+   * TDO => d.0
+   * DATAOUT => d.1 (only #ifdef HAVE_AS_MODE)
+   */
+
+   return (GetASDO()<<1)|GetTDO();
 }
+
+//-----------------------------------------------------------------------------
 
 void ProgIO_ShiftOut(unsigned char c)
 {
-  (void)c;
+  /* Shift out byte C: 
+   *
+   * 8x {
+   *   Output least significant bit on TDI
+   *   Raise TCK
+   *   Shift c right
+   *   Lower TCK
+   * }
+   */
+ 
+  (void)c; /* argument passed in DPL */
+
   _asm
         MOV  A,DPL
         ;; Bit0
@@ -247,6 +275,20 @@ unsigned char ProgIO_ShiftInOut(unsigned char c)
 
 unsigned char ProgIO_ShiftInOut_JTAG(unsigned char c)
 {
+  /* Shift out byte C, shift in from TDO:
+   *
+   * 8x {
+   *   Read carry from TDO
+   *   Output least significant bit on TDI
+   *   Raise TCK
+   *   Shift c right, append carry (TDO) at left
+   *   Lower TCK
+   * }
+   * Return c.
+   */
+
+   (void)c; /* argument passed in DPL */
+
   _asm
         MOV  A,DPL
 
@@ -302,6 +344,9 @@ unsigned char ProgIO_ShiftInOut_JTAG(unsigned char c)
         MOV  DPL,A
         ret
   _endasm;
+
+  /* return value in DPL */
+
   return c;
 }
 
@@ -309,6 +354,20 @@ unsigned char ProgIO_ShiftInOut_JTAG(unsigned char c)
 
 unsigned char ProgIO_ShiftInOut_AS(unsigned char c)
 {
+  /* Shift out byte C, shift in from TDO:
+   *
+   * 8x {
+   *   Read carry from TDO
+   *   Output least significant bit on TDI
+   *   Raise TCK
+   *   Shift c right, append carry (TDO) at left
+   *   Lower TCK
+   * }
+   * Return c.
+   */
+
+  (void)c; /* argument passed in DPL */
+
   _asm
         MOV  A,DPL
 

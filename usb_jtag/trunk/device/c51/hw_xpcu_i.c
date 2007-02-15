@@ -17,11 +17,32 @@
  *-----------------------------------------------------------------------------
  */
 
-#include "hw_xpcu_i.h"
+#include "hardware.h"
 #include "fx2regs.h"
 #include "syncdelay.h"
 
-void HW_Init(void)
+//---------------------------------------------------------------------------
+
+#define SetTCK(x)     do{if(x) IOE|=0x08; else IOE&=~0x08; }while(0)
+#define SetTMS(x)     do{if(x) IOE|=0x10; else IOE&=~0x10; }while(0)
+#define SetTDI(x)     do{if(x) IOE|=0x40; else IOE&=~0x40; }while(0)
+#define GetTDO()      ((IOE>>5)&1)
+
+/* XPCU has neither AS nor PS mode pins */
+
+#define HAVE_OE_LED 1
+/* +0=green led, +1=red led */
+sbit at 0x80+1        OELED;
+#define SetOELED(x)   do{OELED=(x);}while(0)
+
+//-----------------------------------------------------------------------------
+
+void ProgIO_Poll(void)    {}
+void ProgIO_Enable(void)  {}
+void ProgIO_Disable(void) {}
+void ProgIO_Deinit(void)  {}
+
+void ProgIO_Init(void)
 {
   /* The following code depends on your actual circuit design.
      Make required changes _before_ you try the code! */
@@ -36,11 +57,53 @@ void HW_Init(void)
 
   PORTACFG = 0x00; OEA = 0x03; IOA=0x01;
   PORTCCFG = 0x00; OEC = 0x00; IOC=0x00;
-  PORTECFG = 0x00; OEE = 0x00; IOE=0x00;
+  PORTECFG = 0x00; OEE = 0x58; IOE=0x00;
 }
 
-void ShiftOut(unsigned char c)
+void ProgIO_Set_State(unsigned char d)
 {
+  /* Set state of output pins:
+   *
+   * d.0 => TCK
+   * d.1 => TMS
+   * d.2 => nCE (only #ifdef HAVE_AS_MODE)
+   * d.3 => nCS (only #ifdef HAVE_AS_MODE)
+   * d.4 => TDI
+   * d.6 => LED / Output Enable
+   */
+
+  SetTCK((d & bmBIT0) ? 1 : 0);
+  SetTMS((d & bmBIT1) ? 1 : 0);
+  SetTDI((d & bmBIT4) ? 1 : 0);
+#ifdef HAVE_OE_LED
+  SetOELED((d & bmBIT5) ? 1 : 0);
+#endif
+}
+
+unsigned char ProgIO_Set_Get_State(unsigned char d)
+{
+  /* Read state of input pins:
+   *
+   * TDO => d.0
+   * DATAOUT => d.1 (only #ifdef HAVE_AS_MODE)
+   */
+
+  ProgIO_Set_State(d);
+  return 2|GetTDO();
+}
+
+void ProgIO_ShiftOut(unsigned char c)
+{
+  /* Shift out byte C:
+   *
+   * 8x {
+   *   Output least significant bit on TDI
+   *   Raise TCK
+   *   Shift c right
+   *   Lower TCK
+   * }
+   */
+
   unsigned char lc=c;
 
   if(lc&1) IOE|=0x40; else IOE&=~0x40; IOE|=0x08; lc>>=1; IOE&=~0x08;
@@ -54,8 +117,20 @@ void ShiftOut(unsigned char c)
   if(lc&1) IOE|=0x40; else IOE&=~0x40; IOE|=0x08; lc>>=1; IOE&=~0x08;
 }
 
-unsigned char ShiftInOut(unsigned char c)
+unsigned char ProgIO_ShiftInOut(unsigned char c)
 {
+  /* Shift out byte C, shift in from TDO:
+   *
+   * 8x {
+   *   Read carry from TDO
+   *   Output least significant bit on TDI
+   *   Raise TCK
+   *   Shift c right, append carry (TDO) at left
+   *   Lower TCK
+   * }
+   * Return c.
+   */
+
   unsigned char carry;
   unsigned char lc=c;
 
