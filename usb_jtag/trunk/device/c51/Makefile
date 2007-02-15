@@ -17,9 +17,13 @@
 
 LIBDIR=fx2
 LIB=libfx2.lib
-HARDWARE=hw_basic
-#HARDWARE=hw_xpcu_i
-#HARDWARE=hw_xpcu_x
+
+
+ifeq (${HARDWARE},)
+  HARDWARE=hw_basic
+  #HARDWARE=hw_xpcu_i
+  #HARDWARE=hw_xpcu_x
+endif
 
 CC=sdcc
 CFLAGS+=-mmcs51 --no-xinit-opt -I${LIBDIR} -D${HARDWARE}
@@ -62,8 +66,8 @@ ref:
 
 dscr.rel: dscr.a51
 eeprom.rel: eeprom.c eeprom.h
-usbjtag.rel: usbjtag.c ${HARDWARE}.h eeprom.h
-${HARDWARE}.rel: ${HARDWARE}.c ${HARDWARE}.h
+usbjtag.rel: usbjtag.c hardware.h eeprom.h
+${HARDWARE}.rel: ${HARDWARE}.c hardware.h
 
 clean:
 	make -C ${LIBDIR} clean

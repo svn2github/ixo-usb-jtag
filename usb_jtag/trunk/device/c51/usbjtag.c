@@ -31,16 +31,7 @@
 #include "syncdelay.h"
 
 #include "eeprom.h"
-
-#if defined(hw_basic)
- #include "hw_basic.h"
-#elif defined(hw_xpcu_i)
- #include "hw_xpcu_i.h"
-#elif defined(hw_xpcu_x)
- #include "hw_xpcu_x.h"
-#else
- #error undefined hw_* in usbjtag.c
-#endif
+#include "hardware.h"
 
 //-----------------------------------------------------------------------------
 // Define USE_MOD256_OUTBUFFER:
@@ -315,11 +306,11 @@ void usb_jtag_activity(void) // Called repeatedly while the device is idle
          
             if(WriteOnly) /* Shift out 8 bits from d */
             {
-               while(m--) ShiftOut(XAUTODAT1);
+               while(m--) ProgIO_ShiftOut(XAUTODAT1);
             }
             else /* Shift in 8 bits at the other end  */
             {
-               while(m--) OutputByte(ShiftInOut(XAUTODAT1));
+               while(m--) OutputByte(ProgIO_ShiftInOut(XAUTODAT1));
             }
         }
         else
@@ -335,22 +326,10 @@ void usb_jtag_activity(void) // Called repeatedly while the device is idle
             }
             else
             {
-               /* Set state of output pins */
-
-               SetTCK((d & bmBIT0) ? 1 : 0);
-               SetTMS((d & bmBIT1) ? 1 : 0);
-#ifdef HAVE_AS_MODE
-               SetNCE((d & bmBIT2) ? 1 : 0);
-               SetNCS((d & bmBIT3) ? 1 : 0);
-#endif
-               SetTDI((d & bmBIT4) ? 1 : 0);
-#ifdef HAVE_OE_LED
-               SetOELED((d & bmBIT5) ? 1 : 0);
-#endif
-
-               /* Optionally read state of input pins and put it in output buffer */
-
-               if(!WriteOnly) OutputByte((GetASDO()<<1)|GetTDO());
+               if(WriteOnly)
+                   ProgIO_Set_State(d);
+               else
+                   OutputByte(ProgIO_Set_Get_State(d));
             };
             i++;
          };

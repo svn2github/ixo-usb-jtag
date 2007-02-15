@@ -20,11 +20,10 @@
 #define _HARDWARE_H 1
 
 extern void ProgIO_Init(void);
-extern unsigned void ProgIO_Poll(void);
-extern unsigned char ProgIO_Enable(void);
-extern unsigned char ProgIO_Disable(void);
-extern unsigned void ProgIO_Disable(void);
-extern unsigned void ProgIO_Deinit(void);
+extern void ProgIO_Poll(void);
+extern void ProgIO_Enable(void);
+extern void ProgIO_Disable(void);
+extern void ProgIO_Deinit(void);
 
 extern void ProgIO_Set_State(unsigned char d);
 extern unsigned char ProgIO_Set_Get_State(unsigned char d);
