@@ -125,88 +125,39 @@ void ProgIO_Init(void)
   curios = 0;
 }
 
-unsigned char GetTDO()
+unsigned char GetTDO(unsigned char r)
 {
   unsigned char x;
 
   IOC = 0x41;
-
-  while(!(GPIFTRIG & 0x80));
-  x = XGPIFSGLDATLX;
-
-  while(!(GPIFTRIG & 0x80));
-  x = XGPIFSGLDATLNOX;
+  while(!(GPIFTRIG & 0x80)); x = XGPIFSGLDATLX;
+  while(!(GPIFTRIG & 0x80)); x = XGPIFSGLDATLNOX;
 
   if(IOA & 0x20) IOA |= 0x40; else IOA &= ~0x40;
 
-  /* Activity on 2 and 0x10, but that's not the real thing it seems */
-
-  x = (x&1)?1:0;
-
-  /* LED visualization */
-  if(x) IOA=(IOA&~3)|1; else IOA=(IOA&~3)|2;
-
-  return x;
+  return (x&1) ? r : 0;
 }
 
-
-void SetPins(unsigned char x)
-{
-  IOC = 0x81;
-
-  while(!(GPIFTRIG & 0x80));
-  XGPIFSGLDATLX = x;
-
-  curios = x;
-}
-
-/* 
- * 0x01/0x10: TDI
- * 0x02/0x20: TMS
- * 0x04/0x40: TCK
- * 0x08/0x80: no activity
- */
-
-void SetTDI(unsigned char x)
-{
-  if(x) SetPins(curios | 0x10);
-   else SetPins(curios & ~0x10);
-}
-
-void SetTMS(unsigned char x)
-{
-  if(x) SetPins(curios | 0x20);
-   else SetPins(curios & ~0x20);
-}
-
-void SetTCK(unsigned char x)
-{
-  if(x) SetPins(curios | 0x40);
-   else SetPins(curios & ~0x40);
-}
+#define SetPins(x) while(!(GPIFTRIG & 0x80)); XGPIFSGLDATLX = (x)
 
 void ProgIO_Set_State(unsigned char d)
 {
   /* Set state of output pins:
    *
-   * d.0 => TCK
-   * d.1 => TMS
-   * d.2 => nCE (only #ifdef HAVE_AS_MODE)
-   * d.3 => nCS (only #ifdef HAVE_AS_MODE)
-   * d.4 => TDI
+   * d.0 => TCK (PE.6)
+   * d.1 => TMS (PE.5)
+   * d.4 => TDI (PE.4)
    * d.6 => LED / Output Enable
    */
+ 
+  curios  = (d & bmBIT0) ? 0x40 : 0; // TCK
+  curios |= (d & bmBIT1) ? 0x20 : 0; // TMS
+  curios |= (d & bmBIT4) ? 0x10 : 0; // TDI
 
-  SetTCK((d & bmBIT0) ? 1 : 0);
-  SetTMS((d & bmBIT1) ? 1 : 0);
-#ifdef HAVE_AS_MODE
-  SetNCE((d & bmBIT2) ? 1 : 0);
-  SetNCS((d & bmBIT3) ? 1 : 0);
-#endif
-  SetTDI((d & bmBIT4) ? 1 : 0);
-#ifdef HAVE_OE_LED
-  SetOELED((d & bmBIT5) ? 1 : 0);
-#endif
+  IOC = 0x81;
+  SetPins(curios);
+
+  if(d & bmBIT6) IOA=(IOA&~3)|1; else IOA=(IOA&~3)|2;
 }
 
 unsigned char ProgIO_Set_Get_State(unsigned char d)
@@ -219,44 +170,51 @@ unsigned char ProgIO_Set_Get_State(unsigned char d)
    * DATAOUT => d.1 (only #ifdef HAVE_AS_MODE)
    */
 
-   return 2|GetTDO();
+  return 2|GetTDO(0x01);
 }
-
-//-----------------------------------------------------------------------------
-
-
-static unsigned char n = 0;
 
 void ProgIO_ShiftOut(unsigned char c)
 {
-  unsigned char lc=c;
+  unsigned char r,i;
+  unsigned char locios = curios & ~0x50;
 
-  SetTDI(lc&1); SetTCK(1); lc>>=1; SetTCK(0);
-  SetTDI(lc&1); SetTCK(1); lc>>=1; SetTCK(0);
-  SetTDI(lc&1); SetTCK(1); lc>>=1; SetTCK(0);
-  SetTDI(lc&1); SetTCK(1); lc>>=1; SetTCK(0);
+  IOC = 0x81;
 
-  SetTDI(lc&1); SetTCK(1); lc>>=1; SetTCK(0);
-  SetTDI(lc&1); SetTCK(1); lc>>=1; SetTCK(0);
-  SetTDI(lc&1); SetTCK(1); lc>>=1; SetTCK(0);
-  SetTDI(lc&1); SetTCK(1); lc>>=1; SetTCK(0);
+  for(i=0,r=1;i<8;i++)
+  {
+    unsigned char t = locios;
+    if(c & r) t |= 0x10;
+    SetPins(t);
+    SetPins(t|0x40);
+    r <<= 1;
+    SetPins(t);
+  };
+
+  curios = locios;
 }
+
 
 unsigned char ProgIO_ShiftInOut(unsigned char c)
 {
-  unsigned char carry;
-  unsigned char lc=c;
+  unsigned char r,i,n;
+  unsigned char locios = curios & ~0x50;
 
-  carry=GetTDO()?0x80:0; SetTDI(lc&1); SetTCK(1); lc=carry|(lc>>1); SetTCK(0);
-  carry=GetTDO()?0x80:0; SetTDI(lc&1); SetTCK(1); lc=carry|(lc>>1); SetTCK(0);
-  carry=GetTDO()?0x80:0; SetTDI(lc&1); SetTCK(1); lc=carry|(lc>>1); SetTCK(0);
-  carry=GetTDO()?0x80:0; SetTDI(lc&1); SetTCK(1); lc=carry|(lc>>1); SetTCK(0);
-  carry=GetTDO()?0x80:0; SetTDI(lc&1); SetTCK(1); lc=carry|(lc>>1); SetTCK(0);
-  carry=GetTDO()?0x80:0; SetTDI(lc&1); SetTCK(1); lc=carry|(lc>>1); SetTCK(0);
-  carry=GetTDO()?0x80:0; SetTDI(lc&1); SetTCK(1); lc=carry|(lc>>1); SetTCK(0);
-  carry=GetTDO()?0x80:0; SetTDI(lc&1); SetTCK(1); lc=carry|(lc>>1); SetTCK(0);
- 
-  return lc;
+  for(i=0,r=1,n=0;i<8;i++)
+  {
+    unsigned char t = locios;
+
+    n |= GetTDO(r);
+
+    IOC = 0x81;
+    if(c & r) t |= 0x10;
+    SetPins(t);
+    SetPins(t|0x40);
+    r <<= 1;
+    SetPins(t);
+  };
+
+  curios = locios;
+  return n;
 }
 
 
