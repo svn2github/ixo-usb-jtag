@@ -162,6 +162,12 @@ void ProgIO_Set_State(unsigned char d)
 
 unsigned char ProgIO_Set_Get_State(unsigned char d)
 {
+  unsigned char x;
+
+  /*
+   * Set state of output pins (see above)
+   */
+
   ProgIO_Set_State(d);
 
   /* Read state of input pins:
@@ -170,7 +176,10 @@ unsigned char ProgIO_Set_Get_State(unsigned char d)
    * DATAOUT => d.1 (only #ifdef HAVE_AS_MODE)
    */
 
-  return 2|GetTDO(0x01);
+  IOC = 0x41;
+  while(!(GPIFTRIG & 0x80)); x = XGPIFSGLDATLX;
+  while(!(GPIFTRIG & 0x80)); x = XGPIFSGLDATLNOX;
+  return (x&1) | 2;
 }
 
 void ProgIO_ShiftOut(unsigned char c)
@@ -201,12 +210,17 @@ unsigned char ProgIO_ShiftInOut(unsigned char c)
 
   for(i=0,r=1,n=0;i<8;i++)
   {
-    unsigned char t = locios;
+    unsigned char t;
 
-    n |= GetTDO(r);
+    IOC = 0x41;
+    while(!(GPIFTRIG & 0x80)); t = XGPIFSGLDATLX;
+    while(!(GPIFTRIG & 0x80)); t = XGPIFSGLDATLNOX;
+    if(t & 1) n |= r;
 
     IOC = 0x81;
+    t = locios;
     if(c & r) t |= 0x10;
+
     SetPins(t);
     SetPins(t|0x40);
     r <<= 1;
