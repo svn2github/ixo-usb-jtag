@@ -53,11 +53,7 @@
 ;;;--------------------------------------------------------
         
         .area USBDESCSEG    (XDATA)
-        
-;;; ----------------------------------------------------------------
-;;; descriptors used when operating at high speed (480Mb/sec)
-;;; ----------------------------------------------------------------
-        
+       
         .even        ; descriptors must be 2-byte aligned for SUDPTR{H,L} to work
 
         ;; The .even directive isn't really honored by the linker.  Bummer!
@@ -65,10 +61,12 @@
         ;; hence when they're concatenated together, even doesn't work.)
         ;; 
         ;; We work around this by telling the linker to put USBDESCSEG
-        ;; at 0xE000 absolute.  This means that the maximimum length of this
-        ;; segment is 480 bytes, leaving room for the two hash slots 
-        ;; at 0xE1EO to 0xE1FF.  
-        
+        ;; at absolute address 0xE100 (see LDFLAGS in Makefile).
+
+;;; ----------------------------------------------------------------
+;;; descriptors used when operating at high speed (480Mb/sec)
+;;; ----------------------------------------------------------------
+         
 _high_speed_device_descr::
         .db        DSCR_DEVICE_LEN
         .db        DSCR_DEVICE
@@ -134,7 +132,7 @@ _dscr_attrpow::
 
         .db        DSCR_ENDPNT_LEN
         .db        DSCR_ENDPNT
-        .db        0x81             ; bEndpointAddress (ep 1 IN)
+        .db        0x81             ; bEndpointAddress (EP 1 IN)
         .db        ET_BULK          ; bmAttributes
         .db        <64              ; wMaxPacketSize (LSB)
         .db        >64              ; wMaxPacketSize (MSB)
@@ -144,7 +142,7 @@ _dscr_attrpow::
 
         .db        DSCR_ENDPNT_LEN
         .db        DSCR_ENDPNT
-        .db        0x02             ; bEndpointAddress (ep 1 IN)
+        .db        0x02             ; bEndpointAddress (EP 2 OUT)
         .db        ET_BULK          ; bmAttributes
         .db        <64              ; wMaxPacketSize (LSB)
         .db        >64              ; wMaxPacketSize (MSB)

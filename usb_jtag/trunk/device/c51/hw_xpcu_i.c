@@ -62,7 +62,8 @@ void ProgIO_Init(void)
 
 void ProgIO_Set_State(unsigned char d)
 {
-  /* Set state of output pins:
+  /* Set state of output pins
+   * (d is the byte from the host):
    *
    * d.0 => TCK
    * d.1 => TMS
@@ -82,14 +83,15 @@ void ProgIO_Set_State(unsigned char d)
 
 unsigned char ProgIO_Set_Get_State(unsigned char d)
 {
-  /* Read state of input pins:
+  /* Set state of output pins (s.a.)
+   * then read state of input pins:
    *
    * TDO => d.0
    * DATAOUT => d.1 (only #ifdef HAVE_AS_MODE)
    */
 
   ProgIO_Set_State(d);
-  return 2|GetTDO();
+  return 2|GetTDO(); /* DATAOUT assumed high, no AS mode */
 }
 
 void ProgIO_ShiftOut(unsigned char c)
@@ -125,7 +127,7 @@ unsigned char ProgIO_ShiftInOut(unsigned char c)
    *   Read carry from TDO
    *   Output least significant bit on TDI
    *   Raise TCK
-   *   Shift c right, append carry (TDO) at left
+   *   Shift c right, append carry (TDO) at left (into MSB)
    *   Lower TCK
    * }
    * Return c.
