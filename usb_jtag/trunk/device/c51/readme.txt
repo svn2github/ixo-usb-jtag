@@ -1,14 +1,15 @@
 usb_jtag using Cypress FX2 chip
 ===============================
 
-The code in this directory is for Cypress FX2 (e.g. CY7C68013A) and can be compiled with
-the SDCC compiler (I tried version 2.6 as shipped with Ubuntu 6.10). Once I had a version
-that could be compiled with Keil tools (until early 2007), but switched to SDCC because I 
-usually develop on a Linux host.
+The code in this directory is for Cypress FX2 (e.g. CY7C68013A) and can be
+compiled with the SDCC compiler (I tried version 2.6 as shipped with Ubuntu
+6.10). Once I had a version that could be compiled with Keil tools (until early
+2007), but switched to SDCC because I usually develop on a Linux host.
 
-No logic beside the FX2 itself and only a few external components are required for a basic
-JTAG adapter. I don't have detailed schematics available; my test setup consists of a FX2
-on a custom board where it's directly connected to a Cyclone FPGA.
+No logic beside the FX2 itself and only a few external components are required
+for a basic JTAG adapter. I don't have detailed schematics available; my test
+setup consists of a FX2 on a custom board where it's directly connected to a
+Cyclone FPGA.
 
         ____________
        |            |
@@ -36,34 +37,45 @@ As is, the code assumes the following pin assignment:
  Port C.2: TCK
  Port C.3: TMS
 
-Other assignments are possible; you'll have to adapt the definitions in hardware.h and maybe
-in hardware.c, too.
+Other assignments are possible. If you have your signals connected to
+bit-addressable I/O pins, I suggest you make a copy of hw_basic.c and
+adapt the definitions to your needs (undefine any of the #HAVE_XX_MODE
+first), then compile it with "make HARDWARE=hw_myhardware". If your 
+signals are not on bit-addressable I/Os, you could take a look at the
+slower hw_xpcu_i.c. Furthermore, hw_saxo_l is a good place to start
+if you have bit-addressable pins and need only JTAG but no AS/PS mode.
 
-The USB identification data (vendor/product ID, strings, ...) can be modified in dscr.a51. My
-firmware emulates the 128 byte EEPROM that usually holds configuration data for the FT245 and
-which can be read from the host; its content is computed from the data in dscr.a51 as well.
+The USB identification data (vendor/product ID, strings, ...) can be modified
+in dscr.a51. My firmware emulates the 128 byte EEPROM that usually holds
+configuration data for the FT245 and which can be read from the host; its
+content is computed from the data in dscr.a51 as well.  
 
-The WAKEUP pin should be high for the re-numeration to work reliably (thanks Jean/fpga4fun!)
+The WAKEUP pin should be high for the re-numeration to work reliably (thanks
+Jean/fpga4fun!)
 
-From this release on, there is new code to support running in the "Xilinx
-Platform Cable USB". If you select HARDWARE=hw_xpcu_i or hw_xpcu_x at the top
-of the Makefile, a firmware for the XPCU will be built. I've tested this only
-with unmodified CPLD version 18 (0x12) on a Spartan-3E starter kit, as it was
-programmed by my WebPack 8.2i. The code needs optimization; yet it is merely a
-proof of concept.
+There is code to support running in the "Xilinx Platform Cable USB". If you
+select HARDWARE=hw_xpcu_i or hw_xpcu_x at the top of the Makefile, a firmware
+for the XPCU will be built. I've tested this only with unmodified CPLD version
+18 (0x12) on a Spartan-3E starter kit, as it was programmed by my WebPack 8.2i.
+The code needs optimization; yet it is merely a proof of concept.
+Compile for the XPCU with e.g. "make HARDWARE=hw_xpcu_x".
 
  hw_xpcu_i: Access "internal" chain (the XPCU CPLD, IC3, itself)
  hw_xpcu_x: Access "external" chain (the Spartan 3E, PROM, etc.)
+
+Changes since previous release on 2007-02-15:
+  - fx2/Makefile fixed to build correct libfx2.lib even under Windows.
+  - Jean Nicolle contributed hw_saxo_l.c for the FX2 boards from fpga4fun.com
 
 Changes since previous release on 2007-01-28:
   - Initial suppport for running on Xilinx XPCU.
   - New FX2 code, based on USRP2 from the GNU Radio Project;
   - Firmware can now be compiled using SDCC 2.6. No more Keil support.
-  - EEPROM content is automatically computed from descriptors, including checksum.
+  - EEPROM content is automatically computed from dscr.a51, including checksum.
 
 Changes since initial release on 2006-04-23:
   - added this readme.txt
-  - reorganized my project folder: diff is now created from Subversion repository
+  - reorganized my project folder: diff now created from Subversion repository
   - stripped *.dist extension from eeprom.c and dscr.a51 
   - added unique proper product and vendor ID (thanks to Antti Lukats!)
   - fixed checksum in eeprom.c
