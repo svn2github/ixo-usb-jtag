@@ -66,7 +66,7 @@ sbit at 0xA1          TDO; /* Port C.1 */
 #else
 
   #define bmASDOOE    0
-  #define GetASDO(x)  0
+  #define GetASDO(x)  1
 
 #endif
 
@@ -176,15 +176,15 @@ void ProgIO_Set_State(unsigned char d)
 
 unsigned char ProgIO_Set_Get_State(unsigned char d)
 {
-  ProgIO_Set_State(d);
-
-  /* Read state of input pins:
+  /* Set state of output pins (s.a.)
+   * then read state of input pins:
    *
    * TDO => d.0
    * DATAOUT => d.1 (only #ifdef HAVE_AS_MODE)
    */
 
-   return (GetASDO()<<1)|GetTDO();
+  ProgIO_Set_State(d);
+  return (GetASDO()<<1)|GetTDO();
 }
 
 //-----------------------------------------------------------------------------

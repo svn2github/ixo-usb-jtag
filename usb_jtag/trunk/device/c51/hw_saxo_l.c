@@ -59,6 +59,7 @@ void ProgIO_Enable(void)  {}
 void ProgIO_Disable(void) {}
 void ProgIO_Deinit(void)  {}
 
+
 void ProgIO_Init(void)
 {
   /* The following code depends on your actual circuit design.
@@ -93,15 +94,15 @@ void ProgIO_Set_State(unsigned char d)
 
 unsigned char ProgIO_Set_Get_State(unsigned char d)
 {
-  ProgIO_Set_State(d);
-
-  /* Read state of input pins:
+  /* Set state of output pins (s.a.)
+   * then read state of input pins:
    *
    * TDO => d.0
-   * DATAOUT => d.1 (static high, no AS mode)
+   * DATAOUT => d.1 (only #ifdef HAVE_AS_MODE)
    */
 
-   return 2|GetTDO();
+  ProgIO_Set_State(d);
+  return 2|GetTDO(); /* DATAOUT assumed high, no AS mode */
 }
 
 //-----------------------------------------------------------------------------
