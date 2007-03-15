@@ -21,6 +21,7 @@
 #include "delay.h"
 
 //-----------------------------------------------------------------------------
+// comment out (undefine!) if you don't want PS, AS or OE signals
 
 #define HAVE_PS_MODE 1
 #define HAVE_AS_MODE 1
@@ -30,13 +31,13 @@
 
 /* JTAG TCK, AS/PS DCLK */
 
-sbit at 0xA2          TCK; /* Port C.0 */
+sbit at 0xA2          TCK; /* Port C.2 */
 #define bmTCKOE       bmBIT2
 #define SetTCK(x)     do{TCK=(x);}while(0)
 
 /* JTAG TDI, AS ASDI, PS DATA0 */
 
-sbit at 0xA0          TDI; /* Port C.2 */
+sbit at 0xA0          TDI; /* Port C.0 */
 #define bmTDIOE       bmBIT0
 #define SetTDI(x)     do{TDI=(x);}while(0)
 
