@@ -45,7 +45,7 @@ LDFLAGS+=-L ${LIBDIR}
 default: std.hex
 
 std.hex: vectors.rel usbjtag.rel dscr.rel eeprom.rel ${HARDWARE}.rel startup.rel ${LIBDIR}/${LIB}
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $+ ${LIB}
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $+ 
 
 ${LIBDIR}/${LIB}:
 	make -C ${LIBDIR}
