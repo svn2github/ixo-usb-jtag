@@ -20,6 +20,7 @@ LIB=libfx2.lib
 
 ifeq (${HARDWARE},)
   HARDWARE=hw_basic
+  #HARDWARE=hw_saxo_l
   #HARDWARE=hw_xpcu_i
   #HARDWARE=hw_xpcu_x
 endif
