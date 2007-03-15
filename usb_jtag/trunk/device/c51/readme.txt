@@ -1,6 +1,8 @@
 usb_jtag using Cypress FX2 chip
 ===============================
 
+== General information ==
+
 The code in this directory is for Cypress FX2 (e.g. CY7C68013A) and can be
 compiled with the SDCC compiler (I tried version 2.6 as shipped with Ubuntu
 6.10). Once I had a version that could be compiled with Keil tools (until early
@@ -23,12 +25,18 @@ Cyclone FPGA.
        |_____________|
 
 
-Similar eval boards are now available from fpga4fun.com - the boards named
-"Saxo-L" and "Xylo-EM" are pre-wired for use with an adapted version of my
-code, while "Saxo" and "Xylo" can be used after soldering 4 extra wires:
+Similar boards are available from fpga4fun.com - the boards named "Saxo-L" and
+"Xylo-EM" are pre-wired for use with an adapted version of my code, while
+"Saxo" and "Xylo" can be used after soldering 4 extra wires:
 
 	http://www.fpga4fun.com/board_Xylo.html
 
+There's a discussion thread in the fpga4fun forum about this firmware:
+
+    http://www.fpga4fun.com/forum/viewtopic.php?t=483
+
+
+== Adapting the code to your hardware ==
 
 As is, the code assumes the following pin assignment:
 
@@ -38,20 +46,26 @@ As is, the code assumes the following pin assignment:
  Port C.3: TMS
 
 Other assignments are possible. If you have your signals connected to
-bit-addressable I/O pins, I suggest you make a copy of hw_basic.c and
-adapt the definitions to your needs (undefine any of the #HAVE_XX_MODE
-first), then compile it with "make HARDWARE=hw_myhardware". If your 
-signals are not on bit-addressable I/Os, you could take a look at the
-slower hw_xpcu_i.c. Furthermore, hw_saxo_l is a good place to start
-if you have bit-addressable pins and need only JTAG but no AS/PS mode.
+bit-addressable I/O pins (port A,B,C or D), I suggest you make a copy of
+hw_basic.c and adapt the definitions and ProgIO_Init() in it to your needs.
+The file hw_saxo_l is even simpler to adapt if you want only JTAG and no AS/PS
+mode.  If your signals are not on bit-addressable I/Os (that is, you're using
+port E), you could base your adaptation on the slower hw_xpcu_i.c. You may
+specify the name of your adapted hardware-specific file when "make"ing, e.g.:
+
+  make HARDWARE=hw_saxo_l
+
 
 The USB identification data (vendor/product ID, strings, ...) can be modified
-in dscr.a51. My firmware emulates the 128 byte EEPROM that usually holds
+in dscr.a51. The firmware emulates the 128 byte EEPROM that usually holds
 configuration data for the FT245 and which can be read from the host; its
-content is computed from the data in dscr.a51 as well.  
+content (including checksum) is computed from the data in dscr.a51 as well.  
 
 The WAKEUP pin should be high for the re-numeration to work reliably (thanks
-Jean/fpga4fun!)
+Jean/fpga4fun!).
+
+
+== Using it with Xilinx JTAG cable ==
 
 There is code to support running in the "Xilinx Platform Cable USB". If you
 select HARDWARE=hw_xpcu_i or hw_xpcu_x at the top of the Makefile, a firmware
@@ -63,9 +77,12 @@ Compile for the XPCU with e.g. "make HARDWARE=hw_xpcu_x".
  hw_xpcu_i: Access "internal" chain (the XPCU CPLD, IC3, itself)
  hw_xpcu_x: Access "external" chain (the Spartan 3E, PROM, etc.)
 
+
+== History ==
+
 Changes since previous release on 2007-02-15:
-  - fx2/Makefile fixed to build correct libfx2.lib even under Windows.
   - Jean Nicolle contributed hw_saxo_l.c for the FX2 boards from fpga4fun.com
+  - fx2/Makefile fixed to build correct libfx2.lib even under Windows.
 
 Changes since previous release on 2007-01-28:
   - Initial suppport for running on Xilinx XPCU.
