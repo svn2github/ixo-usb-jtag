@@ -22,12 +22,6 @@
 
 //-----------------------------------------------------------------------------
 
-//#define HAVE_PS_MODE 1
-//#define HAVE_AS_MODE 1
-//#define HAVE_OE_LED  1
-
-//-----------------------------------------------------------------------------
-
 /* JTAG TCK, AS/PS DCLK */
 
 sbit at 0xB3          TCK;
@@ -54,71 +48,8 @@ sbit at 0xB1          TDO;
 
 //-----------------------------------------------------------------------------
 
-#if defined(HAVE_PS_MODE) || defined(HAVE_AS_MODE)
-
-  /* AS DATAOUT, PS nSTATUS */
-
-  sbit at 0xA6        ASDO; /* Port C.6 */
-  #define bmASDOOE    bmBIT6
-  #define GetASDO(x)  ASDO
-
-#else
-
-  #define bmASDOOE    0
-  #define GetASDO(x)  0
-
-#endif
-
-//-----------------------------------------------------------------------------
-
-#if defined(HAVE_AS_MODE)
-
-  /* AS Mode nCS */
-
-  sbit at 0xA4        NCS; /* Port C.4 */
-  #define bmNCSOE     bmBIT4
-  #define SetNCS(x)   do{NCS=(x);}while(0)
-  #define GetNCS(x)   NCS
-
-  /* AS Mode nCE */
-
-  sbit at 0xA5        NCE; /* Port C.5 */
-  #define bmNCEOE     bmBIT5
-  #define SetNCE(x)   do{NCE=(x);}while(0)
-
-  unsigned char ProgIO_ShiftInOut_AS(unsigned char x);
-
-#else
-
-  #define bmNCSOE     0
-  #define SetNCS(x)   while(0){}
-  #define GetNCS(x)   1
-  #define bmNCEOE     0
-  #define SetNCE(x)   while(0){}
-
-  #define ProgIO_ShiftInOut_AS(x) ProgIO_ShiftInOut(x)
-
-#endif
-
-//-----------------------------------------------------------------------------
-
-#ifdef HAVE_OE_LED
-
-  sbit at 0xA7        OELED; /* Port C.7 */
-  #define bmOELEDOE   bmBIT7
-  #define SetOELED(x) do{OELED=(x);}while(0)
-
-#else
-
-  #define bmOELEDOE   0
-  #define SetOELED(x) while(0){}
-
-#endif
-
-//-----------------------------------------------------------------------------
-
-#define bmPROGOUTOE (bmTCKOE|bmTDIOE|bmTMSOE|bmNCEOE|bmNCSOE|bmOELEDOE)
-#define bmPROGINOE  (bmTDOOE|bmASDOOE)
+#define bmPROGOUTOE (bmTCKOE|bmTDIOE|bmTMSOE)
+#define bmPROGINOE  (bmTDOOE)
 
 //-----------------------------------------------------------------------------
 
@@ -128,7 +59,6 @@ void ProgIO_Enable(void)  {}
 void ProgIO_Disable(void) {}
 void ProgIO_Deinit(void)  {}
 
-
 void ProgIO_Init(void)
 {
   /* The following code depends on your actual circuit design.
@@ -137,18 +67,10 @@ void ProgIO_Init(void)
   // set the CPU clock to 48MHz, enable clock output to FPGA
   CPUCS = bmCLKOE | bmCLKSPD1;
 
-  // Use internal 48 MHz, enable output, use "Port" mode for all pins
-//  IFCONFIG = bmIFCLKSRC | bm3048MHZ | bmIFCLKOE;
-  IFCONFIG = 3;
-
-  // power on the onboard FPGA and all other VCCs, de-assert RESETN
-//  IOE = 0x1F;
-//  OEE = 0x1F;
-
-//  mdelay(500); // wait for supply to come up
+  // Use external clock, use "Slave FIFO" mode for all pins
+  IFCONFIG = bmIFCFG1 | bmIFCFG0;
 
   // TDO input, others output
-//  OEC=(OEC&~bmPROGINOE) | bmPROGOUTOE;
   OED=(OED&~bmPROGINOE) | bmPROGOUTOE;
 }
 
@@ -166,14 +88,7 @@ void ProgIO_Set_State(unsigned char d)
 
   SetTCK((d & bmBIT0) ? 1 : 0);
   SetTMS((d & bmBIT1) ? 1 : 0);
-#ifdef HAVE_AS_MODE
-  SetNCE((d & bmBIT2) ? 1 : 0);
-  SetNCS((d & bmBIT3) ? 1 : 0);
-#endif
   SetTDI((d & bmBIT4) ? 1 : 0);
-#ifdef HAVE_OE_LED
-  SetOELED((d & bmBIT5) ? 1 : 0);
-#endif
 }
 
 unsigned char ProgIO_Set_Get_State(unsigned char d)
@@ -183,10 +98,10 @@ unsigned char ProgIO_Set_Get_State(unsigned char d)
   /* Read state of input pins:
    *
    * TDO => d.0
-   * DATAOUT => d.1 (only #ifdef HAVE_AS_MODE)
+   * DATAOUT => d.1 (static high, no AS mode)
    */
 
-   return (GetASDO()<<1)|GetTDO();
+   return 2|GetTDO();
 }
 
 //-----------------------------------------------------------------------------
@@ -259,24 +174,7 @@ void ProgIO_ShiftOut(unsigned char c)
 ;; is just like 50% at 6 Mhz, and that's still acceptable
 */
 
-#if HAVE_AS_MODE
-
-unsigned char ProgIO_ShiftInOut_JTAG(unsigned char c);
-unsigned char ProgIO_ShiftInOut_AS(unsigned char c);
-
 unsigned char ProgIO_ShiftInOut(unsigned char c)
-{
-  if(GetNCS(x)) return ProgIO_ShiftInOut_JTAG(c);
-  return ProgIO_ShiftInOut_AS(c);
-}
-
-#else /* HAVE_AS_MODE */
-
-#define ProgIO_ShiftInOut_JTAG(x) ProgIO_ShiftInOut(x)
-
-#endif
-
-unsigned char ProgIO_ShiftInOut_JTAG(unsigned char c)
 {
   /* Shift out byte C, shift in from TDO:
    *
@@ -353,82 +251,5 @@ unsigned char ProgIO_ShiftInOut_JTAG(unsigned char c)
   return c;
 }
 
-#ifdef HAVE_AS_MODE
-
-unsigned char ProgIO_ShiftInOut_AS(unsigned char c)
-{
-  /* Shift out byte C, shift in from TDO:
-   *
-   * 8x {
-   *   Read carry from TDO
-   *   Output least significant bit on TDI
-   *   Raise TCK
-   *   Shift c right, append carry (TDO) at left
-   *   Lower TCK
-   * }
-   * Return c.
-   */
-
-  (void)c; /* argument passed in DPL */
-
-  _asm
-        MOV  A,DPL
-
-        ;; Bit0
-        MOV  C,_ASDO
-        RRC  A
-        MOV  _TDI,C
-        SETB _TCK
-        CLR  _TCK
-        ;; Bit1
-        MOV  C,_ASDO
-        RRC  A
-        MOV  _TDI,C
-        SETB _TCK
-        CLR  _TCK
-        ;; Bit2
-        MOV  C,_ASDO
-        RRC  A
-        MOV  _TDI,C
-        SETB _TCK
-        CLR  _TCK
-        ;; Bit3
-        MOV  C,_ASDO
-        RRC  A
-        MOV  _TDI,C
-        SETB _TCK
-        CLR  _TCK
-        ;; Bit4
-        MOV  C,_ASDO
-        RRC  A
-        MOV  _TDI,C
-        SETB _TCK
-        CLR  _TCK
-        ;; Bit5
-        MOV  C,_ASDO
-        RRC  A
-        MOV  _TDI,C
-        SETB _TCK
-        CLR  _TCK
-        ;; Bit6
-        MOV  C,_ASDO
-        RRC  A
-        MOV  _TDI,C
-        SETB _TCK
-        CLR  _TCK
-        ;; Bit7
-        MOV  C,_ASDO
-        RRC  A
-        MOV  _TDI,C
-        SETB _TCK
-        CLR  _TCK
-
-        MOV  DPL,A
-        ret
-  _endasm;
-  return c;
-}
-
-#endif /* HAVE_AS_MODE */
 
 
