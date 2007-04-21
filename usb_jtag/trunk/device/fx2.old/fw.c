@@ -10,8 +10,13 @@
 //
 //   Copyright (c) 1997 AnchorChips, Inc. All rights reserved
 //-----------------------------------------------------------------------------
+#ifdef SDCC
+#include "c4sdcc.h"
+#else
 #include "fx2.h"
 #include "fx2regs.h"
+#define INTERRUPT_0  interrupt 0
+#define INTERRUPT(x) interrupt x
 
 //-----------------------------------------------------------------------------
 // Constants
@@ -23,8 +28,6 @@
 //-----------------------------------------------------------------------------
 // Random Macros
 //-----------------------------------------------------------------------------
-#define   min(a,b) (((a)<(b))?(a):(b))
-#define   max(a,b) (((a)>(b))?(a):(b))
 
   // Registers which require a synchronization delay, see section 15.14
   // FIFORESET        FIFOPINPOLAR
@@ -44,6 +47,10 @@
   //      ...these have been replaced by GPIFTC[B3:B0] registers
   
 #include "fx2sdly.h"             // Define _IFREQ and _CFREQ above this #include
+#endif
+
+#define   min(a,b) (((a)<(b))?(a):(b))
+#define   max(a,b) (((a)>(b))?(a):(b))
 
 //-----------------------------------------------------------------------------
 // Global Variables
@@ -347,9 +354,58 @@ void SetupCommand(void)
 }
 
 // Wake-up interrupt handler
-void resume_isr(void) interrupt WKUP_VECT
+void resume_isr(void) INTERRUPT(WKUP_VECT)
 {
    EZUSB_CLEAR_RSMIRQ();
 }
+
+//-----------------------------------------------------------------------------
+// ISR Prototypes for SDCC
+//-----------------------------------------------------------------------------
+
+#ifdef SDCC
+void ISR_Sudav(void) INTERRUPT_0;
+void ISR_Sutok(void) INTERRUPT_0;
+void ISR_Sof(void) INTERRUPT_0;
+void ISR_Ures(void) INTERRUPT_0;
+void ISR_Susp(void) INTERRUPT_0;
+void ISR_Highspeed(void) INTERRUPT_0;
+void ISR_Ep0ack(void) INTERRUPT_0;
+void ISR_Stub(void) INTERRUPT_0;
+void ISR_Ep0in(void) INTERRUPT_0;
+void ISR_Ep0out(void) INTERRUPT_0;
+void ISR_Ep1in(void) INTERRUPT_0;
+void ISR_Ep1out(void) INTERRUPT_0;
+void ISR_Ep2inout(void) INTERRUPT_0;
+void ISR_Ep4inout(void) INTERRUPT_0;
+void ISR_Ep6inout(void) INTERRUPT_0;
+void ISR_Ep8inout(void) INTERRUPT_0;
+void ISR_Ibn(void) INTERRUPT_0;
+void ISR_Ep0pingnak(void) INTERRUPT_0;
+void ISR_Ep1pingnak(void) INTERRUPT_0;
+void ISR_Ep2pingnak(void) INTERRUPT_0;
+void ISR_Ep4pingnak(void) INTERRUPT_0;
+void ISR_Ep6pingnak(void) INTERRUPT_0;
+void ISR_Ep8pingnak(void) INTERRUPT_0;
+void ISR_Errorlimit(void) INTERRUPT_0;
+void ISR_Ep2piderror(void) INTERRUPT_0;
+void ISR_Ep4piderror(void) INTERRUPT_0;
+void ISR_Ep6piderror(void) INTERRUPT_0;
+void ISR_Ep8piderror(void) INTERRUPT_0;
+void ISR_Ep2pflag(void) INTERRUPT_0;
+void ISR_Ep4pflag(void) INTERRUPT_0;
+void ISR_Ep6pflag(void) INTERRUPT_0;
+void ISR_Ep8pflag(void) INTERRUPT_0;
+void ISR_Ep2eflag(void) INTERRUPT_0;
+void ISR_Ep4eflag(void) INTERRUPT_0;
+void ISR_Ep6eflag(void) INTERRUPT_0;
+void ISR_Ep8eflag(void) INTERRUPT_0;
+void ISR_Ep2fflag(void) INTERRUPT_0;
+void ISR_Ep4fflag(void) INTERRUPT_0;
+void ISR_Ep6fflag(void) INTERRUPT_0;
+void ISR_Ep8fflag(void) INTERRUPT_0;
+void ISR_GpifComplete(void) INTERRUPT_0;
+void ISR_GpifWaveform(void) INTERRUPT_0;
+#endif
 
 

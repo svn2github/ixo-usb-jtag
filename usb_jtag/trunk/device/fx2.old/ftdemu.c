@@ -169,6 +169,7 @@ void TD_Init(void)              // Called once at startup
    EP6CFG = 0xE2;
    SYNCDELAY;                    // 
    EP8CFG = 0xE0;
+   // _asm('nop');
 
    // out endpoints do not come up armed
    
@@ -343,11 +344,11 @@ void TD_Poll(void)              // Called repeatedly while the device is idle
          
             if(WriteOnly) /* Shift out 8 bits from d */
             {
-               while(m--) ShiftOut(XAUTODAT1);
+               // while(m--) ShiftOut(XAUTODAT1);
             }
             else /* Shift in 8 bits at the other end  */
             {
-               while(m--) OutputByte(ShiftInOut(XAUTODAT1));
+               // while(m--) OutputByte(ShiftInOut(XAUTODAT1));
             }
         }
         else
@@ -371,7 +372,7 @@ void TD_Poll(void)              // Called repeatedly while the device is idle
 
                /* Optionally read state of input pins and put it in output buffer */
 
-               if(!WriteOnly) OutputByte(2|TDO);
+               // if(!WriteOnly) OutputByte(2|TDO);
             };
             i++;
          };
