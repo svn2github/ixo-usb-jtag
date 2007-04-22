@@ -9,6 +9,8 @@
 #define AUTOPTR1H  APTR1H
 #define AUTOPTR1L  APTR1L
 
+extern void putchar(char c);
+
 // delay for approximately 4 cycles
 extern void udelay1(void);
 // delay for approximately usecs (max 255) microseconds
@@ -124,8 +126,8 @@ extern void EZUSB_Delay1us(void) _naked;
    Macros
 -----------------------------------------------------------------------------*/
 
-#define MSB(word)      (BYTE)(((WORD)(word) >> 8) & 0xff)
-#define LSB(word)      (BYTE)((WORD)(word) & 0xff)
+#define MSB(x) ((unsigned char)(((unsigned short) x) >> 8))
+#define LSB(x) ((unsigned char)(((unsigned short) x) & 0xFF))
 
 #define SWAP_ENDIAN(word)   ((BYTE*)&word)[0] ^= ((BYTE*)&word)[1];\
                      ((BYTE*)&word)[1] ^= ((BYTE*)&word)[0];\
@@ -342,9 +344,9 @@ extern WORD   pDeviceDscr;
 extern WORD   pDeviceQualDscr;
 extern WORD	  pHighSpeedConfigDscr;
 extern WORD	  pFullSpeedConfigDscr;	
-extern WORD   pConfigDscr;
-extern WORD   pOtherConfigDscr;
-extern WORD   pStringDscr;
+extern volatile WORD pConfigDscr;
+extern volatile WORD pOtherConfigDscr;
+extern WORD pStringDscr;
 
 extern code DEVICEDSCR        DeviceDscr;
 extern code DEVICEQUALDSCR    DeviceQualDscr;
@@ -362,10 +364,10 @@ extern I2CPCKT   volatile I2CPckt;
 // fx2bug extern void EZUSB_IRQ_CLEAR(void);
 // fx2bug #endif
 
-extern void EZUSB_Renum(void) _naked;
 extern void EZUSB_Discon(BOOL renum);
+#define EZUSB_Renum() EZUSB_Discon(TRUE);
 
-extern void EZUSB_Susp(void) _naked;
+extern void EZUSB_Susp(void);
 extern void EZUSB_Resume(void);
 
 extern void EZUSB_Delay1ms(void) _naked;
