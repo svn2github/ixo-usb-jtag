@@ -47,7 +47,6 @@
       .globl _ISR_Ep8fflag
       .globl _ISR_GpifComplete
       .globl _ISR_GpifWaveform
-      .globl _resume_isr
       .globl _EICON
 
       .area CSEG (CODE)
@@ -58,24 +57,35 @@ __standard_interrupt_vector::
 __reset_vector::
       ljmp       s_GSINIT
 
-      reti                  ;; INT#0
-      .ds        7
-      reti                  ;; Timer 0
-      .ds        7
-      reti                  ;; INT#1
-      .ds        7
-      reti                  ;; Timer 1
-      .ds        7
-      reti                  ;; USART 0
-      .ds        7
-      reti                  ;; Timer 2
-      .ds        7
-
-      anl     _EICON,#0xEF  ;; Wakeup
+_ie0_vect::
+      ljmp    nop_isr       ;; 1: INT#0
+      .ds        5
+_tf0_vect::
+      ljmp    nop_isr       ;; 2: Timer 0
+      .ds        5
+_ie1_vect::
+      ljmp    nop_isr       ;; 3: INT#1
+      .ds        5
+_tf1_vect::
+      ljmp    nop_isr       ;; 4: Timer 1
+      .ds        5
+_ti0_vect::
+      ljmp    nop_isr       ;; 5: USART 0
+      .ds        5
+_tf2_vect::
+      ljmp    nop_isr       ;; 6: Timer 2
+      .ds        5
+      anl     _EICON,#0xEF  ;; 7: Wakeup
       reti
       .ds        4
-
-      reti                  ;; USART 1
+_ti1_vect::
+      ljmp    nop_isr       ;; 8: USART 1
+      .ds        5
+_i2c_vect::
+      ljmp    nop_isr       ;; 9: I2C
+      .ds        5
+nop_isr:
+      iret
 
       . = __reset_vector + 0x43
 _USB_Int2AutoVector::
