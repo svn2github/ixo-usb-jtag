@@ -1,5 +1,10 @@
 .module usbjmptb
 
+;; Including this file effectively disables the 
+;; SDCC automatic interrupt vector mechanism. 
+;; You'll have to manually include every vector
+;; here
+
       .globl _ISR_Sudav
       .globl _ISR_Sof
       .globl _ISR_Sutok
@@ -42,6 +47,8 @@
       .globl _ISR_Ep8fflag
       .globl _ISR_GpifComplete
       .globl _ISR_GpifWaveform
+      .globl _resume_isr
+      .globl _EICON
 
       .area CSEG (CODE)
       .area GSINIT (CODE)
@@ -51,35 +58,24 @@ __standard_interrupt_vector::
 __reset_vector::
       ljmp       s_GSINIT
 
-      ljmp        __isr_nop
-      .ds        5
-      ljmp        __isr_nop
-      .ds        5
-      ljmp        __isr_nop
-      .ds        5
-      ljmp        __isr_nop
-      .ds        5
-      ljmp        __isr_nop
-      .ds        5
-      ljmp        __isr_nop
-      .ds        5
-      ljmp        __isr_nop
-      .ds        5
-      ljmp        __isr_nop
-      .ds        5
-      ljmp        __isr_nop
-      .ds        5
-      ljmp        __isr_nop
-      .ds        5
-      ljmp        __isr_nop
-      .ds        5
-      ljmp        __isr_nop
-      .ds        5
-      ljmp        __isr_nop
-      .ds        5
+      reti                  ;; INT#0
+      .ds        7
+      reti                  ;; Timer 0
+      .ds        7
+      reti                  ;; INT#1
+      .ds        7
+      reti                  ;; Timer 1
+      .ds        7
+      reti                  ;; USART 0
+      .ds        7
+      reti                  ;; Timer 2
+      .ds        7
 
-__isr_nop::
+      anl     _EICON,#0xEF  ;; Wakeup
       reti
+      .ds        4
+
+      reti                  ;; USART 1
 
       . = __reset_vector + 0x43
 _USB_Int2AutoVector::
