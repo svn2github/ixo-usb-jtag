@@ -22,6 +22,8 @@
 ;;; appropriate to the FX2.  This is derived from the sdcc code, but uses 
 ;;; the FX2 specific _MPAGE sfr.
 
+        .module startup
+
 
         ;; .area XISEG   (XDATA)  ; the initialized external data area
         ;; .area XINIT   (CODE)          ; the code space consts to init XISEG
