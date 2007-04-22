@@ -92,10 +92,10 @@ static BYTE xdata OutBuffer[OUTBUFFER_LEN] _at_ 0xE000;
 #endif
 
 
-extern BOOL GotSUD;             // Received setup data flag
-extern BOOL Sleep;
-extern BOOL Rwuen;
-extern BOOL Selfpwr;
+extern volatile BOOL GotSUD;             // Received setup data flag
+extern volatile BOOL Sleep;
+extern volatile BOOL Rwuen;
+extern volatile BOOL Selfpwr;
 
 BYTE Configuration;             // Current configuration
 BYTE AlternateSetting;          // Alternate settings
@@ -343,11 +343,11 @@ void TD_Poll(void)              // Called repeatedly while the device is idle
          
             if(WriteOnly) /* Shift out 8 bits from d */
             {
-               while(m--) ShiftOut(XAUTODAT1);
+               // while(m--) ShiftOut(XAUTODAT1);
             }
             else /* Shift in 8 bits at the other end  */
             {
-               while(m--) OutputByte(ShiftInOut(XAUTODAT1));
+               // while(m--) OutputByte(ShiftInOut(XAUTODAT1));
             }
         }
         else
@@ -371,7 +371,7 @@ void TD_Poll(void)              // Called repeatedly while the device is idle
 
                /* Optionally read state of input pins and put it in output buffer */
 
-               if(!WriteOnly) OutputByte(2|TDO);
+               // if(!WriteOnly) OutputByte(2|TDO);
             };
             i++;
          };
@@ -480,6 +480,7 @@ BOOL DR_VendorCmnd(void)
 // Setup Data Available Interrupt Handler
 void ISR_Sudav(void) INTERRUPT_0
 {
+   putchar('S');
    GotSUD = TRUE;            // Set flag
    EZUSB_IRQ_CLEAR();
    USBIRQ = bmSUDAV;         // Clear SUDAV IRQ
@@ -488,18 +489,21 @@ void ISR_Sudav(void) INTERRUPT_0
 // Setup Token Interrupt Handler
 void ISR_Sutok(void) INTERRUPT_0
 {
+   putchar('O');
    EZUSB_IRQ_CLEAR();
    USBIRQ = bmSUTOK;         // Clear SUTOK IRQ
 }
 
 void ISR_Sof(void) INTERRUPT_0
 {
+   putchar('F');
    EZUSB_IRQ_CLEAR();
    USBIRQ = bmSOF;            // Clear SOF IRQ
 }
 
 void ISR_Ures(void) INTERRUPT_0
 {
+   putchar('R');
    if (EZUSB_HIGHSPEED())
    {
       pConfigDscr = pHighSpeedConfigDscr;
@@ -517,6 +521,7 @@ void ISR_Ures(void) INTERRUPT_0
 
 void ISR_Susp(void) INTERRUPT_0
 {
+   putchar('P');
    Sleep = TRUE;
    EZUSB_IRQ_CLEAR();
    USBIRQ = bmSUSP;
@@ -524,6 +529,7 @@ void ISR_Susp(void) INTERRUPT_0
 
 void ISR_Highspeed(void) INTERRUPT_0
 {
+   putchar('H');
    if (EZUSB_HIGHSPEED())
    {
       pConfigDscr = pHighSpeedConfigDscr;

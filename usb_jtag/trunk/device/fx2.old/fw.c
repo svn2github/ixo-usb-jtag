@@ -12,6 +12,7 @@
 //-----------------------------------------------------------------------------
 #ifdef SDCC
 #include "c4sdcc.h"
+#include <stdio.h>
 #else
 #include "fx2.h"
 #include "fx2regs.h"
@@ -55,17 +56,17 @@
 //-----------------------------------------------------------------------------
 // Global Variables
 //-----------------------------------------------------------------------------
-volatile BOOL   GotSUD;
-BOOL      Rwuen;
-BOOL      Selfpwr;
-volatile BOOL   Sleep;                  // Sleep mode enable flag
+volatile BOOL GotSUD;
+volatile BOOL Rwuen;
+volatile BOOL Selfpwr;
+volatile BOOL Sleep;   // Sleep mode enable flag
 
 WORD   pDeviceDscr;   // Pointer to Device Descriptor; Descriptors may be moved
 WORD   pDeviceQualDscr;
 WORD   pHighSpeedConfigDscr;
 WORD   pFullSpeedConfigDscr;   
-WORD   pConfigDscr;
-WORD   pOtherConfigDscr;   
+volatile WORD pConfigDscr;
+volatile WORD pOtherConfigDscr;   
 WORD   pStringDscr;   
 
 //-----------------------------------------------------------------------------
@@ -105,6 +106,10 @@ const char code  EPCS_Offset_Lookup_Table[] =
 // macro for generating the address of an endpoint's control and status register (EPnCS)
 #define epcs(EP) (EPCS_Offset_Lookup_Table[(EP & 0x7E) | (EP > 128)] + 0xE6A1)
 
+#ifdef SDCC
+xdata at 0x3800 BYTE DscrBuffer[256];
+#endif
+
 //-----------------------------------------------------------------------------
 // Code
 //-----------------------------------------------------------------------------
@@ -112,18 +117,11 @@ const char code  EPCS_Offset_Lookup_Table[] =
 // Task dispatcher
 void main(void)
 {
-   DWORD   i;
-   WORD   offset;
-   DWORD   DevDescrLen;
-   DWORD   j=0;
-   WORD   IntDescrAddr;
-   WORD   ExtDescrAddr;
-
    // Initialize Global States
-   Sleep = FALSE;               // Disable sleep mode
-   Rwuen = FALSE;               // Disable remote wakeup
+   Sleep = FALSE;              // Disable sleep mode
+   Rwuen = FALSE;              // Disable remote wakeup
    Selfpwr = FALSE;            // Disable self powered
-   GotSUD = FALSE;               // Clear "Got setup data" flag
+   GotSUD = FALSE;             // Clear "Got setup data" flag
 
    // Initialize user device
    TD_Init();
@@ -140,9 +138,23 @@ void main(void)
    pFullSpeedConfigDscr = (WORD)&FullSpeedConfigDscr;
    pStringDscr = (WORD)&StringDscr;
 
+#if 1
    if ((WORD)&DeviceDscr & 0xe000)
    {
+      DWORD   i;
+      DWORD   j=0;
+      WORD   offset;
+      DWORD   DevDescrLen;
+      WORD   IntDescrAddr;
+      WORD   ExtDescrAddr;
+
+#ifdef SDCC
+      IntDescrAddr = (WORD)&DscrBuffer;
+#else
       IntDescrAddr = INTERNAL_DSCR_ADDR;
+#endif
+      //printf("Copy DeviceDscr %X->%X.\n", pDeviceDscr, IntDescrAddr);
+
       ExtDescrAddr = (WORD)&DeviceDscr;
       DevDescrLen = (WORD)&UserDscr - (WORD)&DeviceDscr + 2;
       for (i = 0; i < DevDescrLen; i++)
@@ -150,7 +162,11 @@ void main(void)
       for (i = 0; i < DevDescrLen; i++)
          *((BYTE xdata *)IntDescrAddr+i) = *((BYTE xdata *)ExtDescrAddr+i);
       pDeviceDscr = IntDescrAddr;
+#ifdef SDCC
+      offset = (WORD)&DeviceDscr - (WORD)&DscrBuffer;
+#else
       offset = (WORD)&DeviceDscr - INTERNAL_DSCR_ADDR;
+#endif
       pDeviceQualDscr -= offset;
       pConfigDscr -= offset;
       pOtherConfigDscr -= offset;
@@ -158,6 +174,7 @@ void main(void)
       pFullSpeedConfigDscr -= offset;
       pStringDscr -= offset;
    }
+#endif
 
    EZUSB_IRQ_ENABLE();            // Enable USB interrupt (INT2)
    EZUSB_ENABLE_RSMIRQ();            // Wake-up interrupt
@@ -193,34 +210,57 @@ void main(void)
       if(GotSUD)            // Wait for SUDAV
       {
          SetupCommand();          // Implement setup command
-           GotSUD = FALSE;            // Clear SUDAV flag
+         GotSUD = FALSE;            // Clear SUDAV flag
       }
 
-      // Poll User Device
-      // NOTE: Idle mode stops the processor clock.  There are only two
-      // ways out of idle mode, the WAKEUP pin, and detection of the USB
-      // resume state on the USB bus.  The timers will stop and the
-      // processor will not wake up on any other interrupts.
+#if 1
       if (Sleep)
-          {
-          if(TD_Suspend())
-              { 
-              Sleep = FALSE;            // Clear the "go to sleep" flag.  Do it here to prevent any race condition between wakeup and the next sleep.
-              do
-                  {
-                    EZUSB_Susp();         // Place processor in idle mode.
-                  }
-                while(!Rwuen && EZUSB_EXTWAKEUP());
-                // Must continue to go back into suspend if the host has disabled remote wakeup
-                // *and* the wakeup was caused by the external wakeup pin.
-                
-             // 8051 activity will resume here due to USB bus or Wakeup# pin activity.
-             EZUSB_Resume();   // If source is the Wakeup# pin, signal the host to Resume.      
-             TD_Resume();
-              }   
-          }
+      {
+        if(TD_Suspend())
+        { 
+           // Clear the "go to sleep" flag.
+           // Do it here to prevent any race condition between wakeup and the next sleep.
+           Sleep = FALSE;
+
+           do
+           {
+             printf("Calling EZUSB_Susp...\n"); while(!TI1);
+#if 0
+             EZUSB_Susp();         // Place processor in idle mode.
+#endif
+
+             // NOTE: Idle mode stops the processor clock.  There are only two
+             // ways out of idle mode, the WAKEUP pin, and detection of the USB
+             // resume state on the USB bus.  The timers will stop and the
+             // processor will not wake up on any other interrupts.
+
+             // Must continue to go back into suspend if the host has disabled remote wakeup
+             // *and* the wakeup was caused by the external wakeup pin.
+           }
+           while(!Rwuen && EZUSB_EXTWAKEUP());
+
+
+           // 8051 activity will resume here due to USB bus or Wakeup# pin activity.
+           printf("Calling EZUSB_Resume...\n");
+#if 0
+           EZUSB_Resume();   // If source is the Wakeup# pin, signal the host to Resume.      
+#endif
+           TD_Resume();
+        }   
+      }
+#endif
+
+      // Poll User Device
       TD_Poll();
    }
+}
+
+void DumpDscr(WORD dp)
+{
+  BYTE i;
+  BYTE len = *((BYTE xdata *)dp);
+  for(i=0;i<len;i++) printf(" %02X", *((BYTE xdata *)dp+i));
+  printf("\n");
 }
 
 // Device request parser
@@ -232,9 +272,12 @@ void SetupCommand(void)
    {
       case SC_GET_DESCRIPTOR:                  // *** Get Descriptor
          if(DR_GetDescriptor())
+            printf("GetDescriptor\n");
             switch(SETUPDAT[3])         
             {
                case GD_DEVICE:            // Device
+                  printf("GetDeviceDescriptor\n");
+                  DumpDscr(pDeviceDscr);
                   SUDPTRH = MSB(pDeviceDscr);
                   SUDPTRL = LSB(pDeviceDscr);
                   break;
@@ -358,54 +401,3 @@ void resume_isr(void) INTERRUPT(WKUP_VECT)
 {
    EZUSB_CLEAR_RSMIRQ();
 }
-
-//-----------------------------------------------------------------------------
-// ISR Prototypes for SDCC
-//-----------------------------------------------------------------------------
-
-#ifdef SDCC
-void ISR_Sudav(void) INTERRUPT_0;
-void ISR_Sutok(void) INTERRUPT_0;
-void ISR_Sof(void) INTERRUPT_0;
-void ISR_Ures(void) INTERRUPT_0;
-void ISR_Susp(void) INTERRUPT_0;
-void ISR_Highspeed(void) INTERRUPT_0;
-void ISR_Ep0ack(void) INTERRUPT_0;
-void ISR_Stub(void) INTERRUPT_0;
-void ISR_Ep0in(void) INTERRUPT_0;
-void ISR_Ep0out(void) INTERRUPT_0;
-void ISR_Ep1in(void) INTERRUPT_0;
-void ISR_Ep1out(void) INTERRUPT_0;
-void ISR_Ep2inout(void) INTERRUPT_0;
-void ISR_Ep4inout(void) INTERRUPT_0;
-void ISR_Ep6inout(void) INTERRUPT_0;
-void ISR_Ep8inout(void) INTERRUPT_0;
-void ISR_Ibn(void) INTERRUPT_0;
-void ISR_Ep0pingnak(void) INTERRUPT_0;
-void ISR_Ep1pingnak(void) INTERRUPT_0;
-void ISR_Ep2pingnak(void) INTERRUPT_0;
-void ISR_Ep4pingnak(void) INTERRUPT_0;
-void ISR_Ep6pingnak(void) INTERRUPT_0;
-void ISR_Ep8pingnak(void) INTERRUPT_0;
-void ISR_Errorlimit(void) INTERRUPT_0;
-void ISR_Ep2piderror(void) INTERRUPT_0;
-void ISR_Ep4piderror(void) INTERRUPT_0;
-void ISR_Ep6piderror(void) INTERRUPT_0;
-void ISR_Ep8piderror(void) INTERRUPT_0;
-void ISR_Ep2pflag(void) INTERRUPT_0;
-void ISR_Ep4pflag(void) INTERRUPT_0;
-void ISR_Ep6pflag(void) INTERRUPT_0;
-void ISR_Ep8pflag(void) INTERRUPT_0;
-void ISR_Ep2eflag(void) INTERRUPT_0;
-void ISR_Ep4eflag(void) INTERRUPT_0;
-void ISR_Ep6eflag(void) INTERRUPT_0;
-void ISR_Ep8eflag(void) INTERRUPT_0;
-void ISR_Ep2fflag(void) INTERRUPT_0;
-void ISR_Ep4fflag(void) INTERRUPT_0;
-void ISR_Ep6fflag(void) INTERRUPT_0;
-void ISR_Ep8fflag(void) INTERRUPT_0;
-void ISR_GpifComplete(void) INTERRUPT_0;
-void ISR_GpifWaveform(void) INTERRUPT_0;
-#endif
-
-
