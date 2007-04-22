@@ -28,6 +28,9 @@
 //-----------------------------------------------------------------------------
 #ifdef SDCC
 #include "c4sdcc.h"
+#ifdef DEBUG
+#include <stdio.h>
+#endif
 #else
 #pragma NOIV               // Do not generate interrupt vectors
 #define INTERRUPT_0  interrupt 0
@@ -132,6 +135,12 @@ void TD_Init(void)              // Called once at startup
 
    // Use internal 48 MHz, enable output, use "Port" mode for all pins
    IFCONFIG = bmIFCLKSRC | bm3048MHZ | bmIFCLKOE;
+
+#ifdef DEBUG
+   UART230 |= 2;
+   SCON1 = 0x52;
+   SMOD1 = 0;
+#endif
 
    // If you're using other pins for JTAG, please also change shift.a51!
    // activate JTAG outputs on Port C
@@ -343,11 +352,11 @@ void TD_Poll(void)              // Called repeatedly while the device is idle
          
             if(WriteOnly) /* Shift out 8 bits from d */
             {
-               // while(m--) ShiftOut(XAUTODAT1);
+               while(m--) ShiftOut(XAUTODAT1);
             }
             else /* Shift in 8 bits at the other end  */
             {
-               // while(m--) OutputByte(ShiftInOut(XAUTODAT1));
+               while(m--) OutputByte(ShiftInOut(XAUTODAT1));
             }
         }
         else
@@ -371,7 +380,7 @@ void TD_Poll(void)              // Called repeatedly while the device is idle
 
                /* Optionally read state of input pins and put it in output buffer */
 
-               // if(!WriteOnly) OutputByte(2|TDO);
+               if(!WriteOnly) OutputByte(2|TDO);
             };
             i++;
          };
@@ -480,7 +489,9 @@ BOOL DR_VendorCmnd(void)
 // Setup Data Available Interrupt Handler
 void ISR_Sudav(void) INTERRUPT_0
 {
+#ifdef DEBUG
    putchar('S');
+#endif
    GotSUD = TRUE;            // Set flag
    EZUSB_IRQ_CLEAR();
    USBIRQ = bmSUDAV;         // Clear SUDAV IRQ
@@ -489,21 +500,27 @@ void ISR_Sudav(void) INTERRUPT_0
 // Setup Token Interrupt Handler
 void ISR_Sutok(void) INTERRUPT_0
 {
+#ifdef DEBUG
    putchar('O');
+#endif
    EZUSB_IRQ_CLEAR();
    USBIRQ = bmSUTOK;         // Clear SUTOK IRQ
 }
 
 void ISR_Sof(void) INTERRUPT_0
 {
+#ifdef DEBUG
    putchar('F');
+#endif
    EZUSB_IRQ_CLEAR();
    USBIRQ = bmSOF;            // Clear SOF IRQ
 }
 
 void ISR_Ures(void) INTERRUPT_0
 {
+#ifdef DEBUG
    putchar('R');
+#endif
    if (EZUSB_HIGHSPEED())
    {
       pConfigDscr = pHighSpeedConfigDscr;
@@ -521,7 +538,9 @@ void ISR_Ures(void) INTERRUPT_0
 
 void ISR_Susp(void) INTERRUPT_0
 {
+#ifdef DEBUG
    putchar('P');
+#endif
    Sleep = TRUE;
    EZUSB_IRQ_CLEAR();
    USBIRQ = bmSUSP;
@@ -529,7 +548,9 @@ void ISR_Susp(void) INTERRUPT_0
 
 void ISR_Highspeed(void) INTERRUPT_0
 {
+#ifdef DEBUG
    putchar('H');
+#endif
    if (EZUSB_HIGHSPEED())
    {
       pConfigDscr = pHighSpeedConfigDscr;

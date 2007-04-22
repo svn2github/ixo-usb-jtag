@@ -13,6 +13,7 @@ CONFIGDSCR xdata *	EZUSB_GetConfigDscr(BYTE ConfigIdx)
 		 if(index++ == ConfigIdx)
 			return(dscr);
 		length = dscr->config_len;
+#warning Check Endianness
 		SWAP_ENDIAN(length);
 		dscr = (CONFIGDSCR xdata *)((WORD)dscr + length);
 	}

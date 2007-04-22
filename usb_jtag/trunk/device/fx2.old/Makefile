@@ -24,8 +24,14 @@ CFLAGS+=-mmcs51 --no-xinit-opt -I${LIBDIR}
 AS=asx8051
 ASFLAGS+=-plosgff
 
+## 16 kB RAM
+#LDFLAGS=--code-loc 0x0000 --code-size 0x2800
+#LDFLAGS+=--xram-loc 0x2800 --xram-size 0x1800
+
+# 8 kB RAM
 LDFLAGS=--code-loc 0x0000 --code-size 0x1800
 LDFLAGS+=--xram-loc 0x1800 --xram-size 0x0800
+
 LDFLAGS+=-Wl '-b USBDESCSEG = 0xE100'
 LDFLAGS+=-L ${LIBDIR}
 

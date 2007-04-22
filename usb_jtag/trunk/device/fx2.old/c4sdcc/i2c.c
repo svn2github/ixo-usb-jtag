@@ -1,15 +1,22 @@
 #include "c4sdcc.h"
 
+extern BYTE xdata i2c_vect[];
+void i2c_isr(void) __interrupt;
+
 void EZUSB_InitI2C(void)
 {
+    EI2C = 0;   // Disable I2C interrupt
+
+    i2c_vect[1] = LSB(&i2c_isr); // Install ISR
+    i2c_vect[2] = MSB(&i2c_isr);
+
 	I2CPckt.status = I2C_IDLE;
 
 	EI2C = 1;	// Enable I2C interrupt				
 	EA = 1;		// Enable 8051 interrupts
 #ifdef TNG
-   I2CMODE |= 0x02;  // enable I2C Stop interrupt
+    I2CMODE |= 0x02;  // enable I2C Stop interrupt
 #endif
-
 }
 
 void EZUSB_WaitForEEPROMWrite(BYTE addr)
@@ -81,7 +88,7 @@ BOOL EZUSB_ReadI2C_(BYTE addr, BYTE length, BYTE xdata *dat)
 	return(FALSE);
 }
 
-void i2c_isr(void) __interrupt(I2C_VECT)
+void i2c_isr(void) __interrupt
 {													// I2C State Machine
 	if(I2CS & bmBERR)
 		I2CPckt.status = I2C_BERROR;

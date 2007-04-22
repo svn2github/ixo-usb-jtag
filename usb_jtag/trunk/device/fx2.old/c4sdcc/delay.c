@@ -1,8 +1,12 @@
 #include "c4sdcc.h"
+#include <stdio.h>
 
 void EZUSB_Delay1us(void) _naked
 {
   /* Just a 'ret' takes about 4 cycles */
+  _asm
+    ret
+  _endasm;
 }
 
 /*
@@ -14,17 +18,13 @@ void EZUSB_Delay1us(void) _naked
 void EZUSB_Delay1ms(void) _naked
 {
   _asm
-  DPS = 0x86; 
-  mov  a, #0      ; Clear dps so that we´re using dph and dpl!  
-  mov  DPS, a      ; 
-  mov  dptr,#(0xFFFF - 602)   ; long pulse for operating
-  mov  r4,#5
-
+    mov  dptr,#(0xFFFF - 602)   ; long pulse for operating
 loop:
-  inc     dptr            ; 3 cycles
-  mov     a,dpl           ; 2 cycles
-  orl     a,dph           ; 2 cycles
-  jnz     loop    ; 3 cycles
+    inc     dptr            ; 3 cycles
+    mov     a,dpl           ; 2 cycles
+    orl     a,dph           ; 2 cycles
+    jnz     loop    ; 3 cycles
+    ret
   _endasm;
 }
 
@@ -35,12 +35,10 @@ loop:
 
 void EZUSB_Delay(WORD ms)
 {
-
-   if ((CPUCS & bmCLKSPD) == 0)              // 12Mhz
-      ms = (ms + 1) / 2;                     // Round up before dividing so we can accept 1.
-   else if ((CPUCS & bmCLKSPD) == bmCLKSPD1)   // 48Mhz
-      ms = ms * 2;
-
-  while(ms--)
-    EZUSB_Delay1ms();
+  if ((CPUCS & bmCLKSPD) == 0)              // 12Mhz
+     ms = (ms + 1) / 2;                     // Round up before dividing so we can accept 1.
+  else if ((CPUCS & bmCLKSPD) == bmCLKSPD1)   // 48Mhz
+     ms = ms * 2;
+  if(!ms) return;
+  while(ms--) EZUSB_Delay1ms();
 }

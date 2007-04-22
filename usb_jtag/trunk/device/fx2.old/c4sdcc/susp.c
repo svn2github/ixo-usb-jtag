@@ -1,13 +1,10 @@
+#include "c4sdcc.h"
 
-void EZUSB_Susp(void) _naked
+void EZUSB_Susp(void)
 {
+  SUSPEND  = 0x26; // Write any byte to this reg to init suspend
+
   _asm
-    USBCS = 0x7FD6 ; XDATA
-    PCON  = 0x87   ; DATA
-    mov   dptr,#USBCS  ; Clear the Wake Source bit in
-    movx  a,@dptr      ; the USBCS register
-    orl  a,#0x80
-    movx  @dptr,a
     orl  PCON,#1       ; Place the processor in idle
     nop                ; Insert some meaningless instruction
     nop                ; fetches to insure that the processor
