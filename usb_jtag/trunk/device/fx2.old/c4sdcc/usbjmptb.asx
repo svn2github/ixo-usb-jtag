@@ -43,7 +43,6 @@
       .globl _ISR_GpifComplete
       .globl _ISR_GpifWaveform
 
-
       .area CSEG (CODE)
       .area GSINIT (CODE)
       .area CSEG (CODE)
@@ -88,13 +87,48 @@ _USB_Int2AutoVector::
 
       . = __reset_vector + 0x53
 _USB_Int4AutoVector::
-      ljmp _USB_Jump_Table ; Autovector will replace byte at 0x55
+      ljmp _GPIF_Jump_Table ; Autovector will replace byte at 0x55
+
+;------------------------------------------------------------------------------
+; GPIF/FIFO Jump Table
+;------------------------------------------------------------------------------
+
+      . = __reset_vector + 0x80
+_GPIF_Jump_Table::
+      ljmp  _ISR_Ep2pflag         ;(80) EP2 Programmable Flag
+      .db   0
+      ljmp  _ISR_Ep4pflag         ;(84) EP4 Programmable Flag
+      .db   0
+      ljmp  _ISR_Ep6pflag         ;(88) EP6 Programmable Flag
+      .db   0
+      ljmp  _ISR_Ep8pflag         ;(8C) EP8 Programmable Flag
+      .db   0
+      ljmp  _ISR_Ep2eflag         ;(90) EP2 Empty Flag
+      .db   0
+      ljmp  _ISR_Ep4eflag         ;(94) EP4 Empty Flag
+      .db   0
+      ljmp  _ISR_Ep6eflag         ;(98) EP6 Empty Flag
+      .db   0
+      ljmp  _ISR_Ep8eflag         ;(9C) EP8 Empty Flag
+      .db   0
+      ljmp  _ISR_Ep2fflag         ;(A0) EP2 Full Flag
+      .db   0
+      ljmp  _ISR_Ep4fflag         ;(A4) EP4 Full Flag
+      .db   0
+      ljmp  _ISR_Ep6fflag         ;(A8) EP6 Full Flag
+      .db   0
+      ljmp  _ISR_Ep8fflag         ;(AC) EP8 Full Flag
+      .db   0
+      ljmp  _ISR_GpifComplete     ;(B0) GPIF Operation Complete
+      .db   0
+      ljmp  _ISR_GpifWaveform     ;(B4) GPIF Waveform
+      .db   0
 
 ;------------------------------------------------------------------------------
 ; USB Jump Table
 ;------------------------------------------------------------------------------
 
-      . = __reset_vector + 0x80
+      . = __reset_vector + 0x100
 _USB_Jump_Table::
       ljmp  _ISR_Sudav            ;(00) Setup Data Available
       .db   0
@@ -159,34 +193,5 @@ _USB_Jump_Table::
       ljmp  _ISR_Ep6piderror      ;(78) EP6 ISO Pid Sequence Error
       .db   0
       ljmp  _ISR_Ep8piderror      ;(7C) EP8 ISO Pid Sequence Error
-      .db   0
-;INT4_Jump_Table
-      ljmp  _ISR_Ep2pflag         ;(80) EP2 Programmable Flag
-      .db   0
-      ljmp  _ISR_Ep4pflag         ;(84) EP4 Programmable Flag
-      .db   0
-      ljmp  _ISR_Ep6pflag         ;(88) EP6 Programmable Flag
-      .db   0
-      ljmp  _ISR_Ep8pflag         ;(8C) EP8 Programmable Flag
-      .db   0
-      ljmp  _ISR_Ep2eflag         ;(90) EP2 Empty Flag
-      .db   0
-      ljmp  _ISR_Ep4eflag         ;(94) EP4 Empty Flag
-      .db   0
-      ljmp  _ISR_Ep6eflag         ;(98) EP6 Empty Flag
-      .db   0
-      ljmp  _ISR_Ep8eflag         ;(9C) EP8 Empty Flag
-      .db   0
-      ljmp  _ISR_Ep2fflag         ;(A0) EP2 Full Flag
-      .db   0
-      ljmp  _ISR_Ep4fflag         ;(A4) EP4 Full Flag
-      .db   0
-      ljmp  _ISR_Ep6fflag         ;(A8) EP6 Full Flag
-      .db   0
-      ljmp  _ISR_Ep8fflag         ;(AC) EP8 Full Flag
-      .db   0
-      ljmp  _ISR_GpifComplete     ;(B0) GPIF Operation Complete
-      .db   0
-      ljmp  _ISR_GpifWaveform     ;(B4) GPIF Waveform
       .db   0
 
