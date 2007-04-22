@@ -10,6 +10,9 @@
 
 void modify_endpoint_stall(BYTE epid, BYTE stall) _naked
 {
+  (void)epid;
+  (void)stall;
+
   _asm
 
   mov   a, dpl ; endpoint id
