@@ -55,7 +55,7 @@ i2c.rel:      i2c.c c4sdcc.h
 i2c_rw.rel:   i2c_rw.c c4sdcc.h
 
 startup.rel: startup.asx
-usbjmptb.rel: usbjmptb.asx
+vectors.rel: vectors.asx
 
 clean:
 	rm -f *.lst *.asm *.lib *.sym *.rel *.lib *.rst
