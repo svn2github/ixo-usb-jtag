@@ -43,7 +43,7 @@ LDFLAGS+=-L ${LIBDIR}
 
 default: std.hex
 
-std.hex: c4sdcc/usbjmptb.rel c4sdcc/startup.rel fw.rel ftdemu.rel dscr.rel ${LIBDIR}/${LIB}
+std.hex: c4sdcc/vectors.rel c4sdcc/startup.rel fw.rel usbjtag.rel shift.rel dscr.rel ${LIBDIR}/${LIB}
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $+ 
 
 .PHONY: $(LIBDIR)/$(LIB)
@@ -65,7 +65,8 @@ ref:
 	-test -e /dev/xilinx_xpcu && /sbin/fxload -D /dev/xilinx_xpcu -I ${REF} -t fx2
 
 fw.rel: fw.c $(LIBDIR)/c4sdcc.h
-ftdemu.rel: ftdemu.c $(LIBDIR)/c4sdcc.h
+usbjtag.rel: usbjtag.c $(LIBDIR)/c4sdcc.h
+shift.rel: shift.c $(LIBDIR)/c4sdcc.h
 dscr.rel: dscr.asx
 
 .PHONY: clean distclean
