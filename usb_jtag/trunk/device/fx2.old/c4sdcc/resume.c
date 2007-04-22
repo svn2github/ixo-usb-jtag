@@ -1,12 +1,13 @@
 #include "c4sdcc.h"
+#include <stdio.h>
 
 void EZUSB_Resume(void)
 {
-	if( ((WAKEUPCS & bmWUEN)&&(WAKEUPCS & bmWU)) ||   // TPM: Check status AND Enable
-		((WAKEUPCS & bmWU2EN)&&(WAKEUPCS & bmWU2)) )
-	{
-		USBCS |= bmSIGRESUME;
-		EZUSB_Delay(20);
-		USBCS &= ~bmSIGRESUME;
-	}
+    if(EZUSB_EXTWAKEUP())
+    {
+        printf("Signalling remote wakeup.\n");
+        USBCS |= bmSIGRESUME;
+        EZUSB_Delay(20);
+        USBCS &= ~bmSIGRESUME;
+    }
 }
