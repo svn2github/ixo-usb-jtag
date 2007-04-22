@@ -18,8 +18,8 @@
 CC=sdcc
 CFLAGS+=-mmcs51 --no-xinit-opt -I.
 CPPFLAGS+=
-OBJS=stall.rel delay.rel discon.rel get_strd.rel susp.rel \
-     renum.rel resume.rel get_cnfg.rel get_dscr.rel get_infc.rel i2c.rel i2c_rw.rel
+OBJS=stall.rel delay.rel discon.rel get_strd.rel susp.rel c4sdcc.rel \
+     resume.rel get_cnfg.rel get_dscr.rel get_infc.rel i2c.rel i2c_rw.rel
 
 AR=sdcclib
 
@@ -41,20 +41,18 @@ AR=sdcclib
 
 c4sdcc.lib: c4sdcc.lib($(OBJS))
 
-
-
-stall.rel: stall.c
-delay.rel: delay.c
-discon.rel: discon.c
-get_strd.rel: get_strd.c
-susp.rel: susp.c
-renum.rel: renum.c
-resume.rel: resume.c
-get_cnfg.rel: get_cnfg.c
-get_dscr.rel: get_dscr.c
-get_infc.rel: get_infc.c
-i2c.rel: i2c.c
-i2c_rw.rel: i2c_rw.c
+c4sdcc.rel:   c4sdcc.c c4sdcc.h
+stall.rel:    stall.c c4sdcc.h
+delay.rel:    delay.c c4sdcc.h
+discon.rel:   discon.c c4sdcc.h 
+get_strd.rel: get_strd.c c4sdcc.h
+susp.rel:     susp.c c4sdcc.h
+resume.rel:   resume.c c4sdcc.h
+get_cnfg.rel: get_cnfg.c c4sdcc.h
+get_dscr.rel: get_dscr.c c4sdcc.h
+get_infc.rel: get_infc.c c4sdcc.h
+i2c.rel:      i2c.c c4sdcc.h
+i2c_rw.rel:   i2c_rw.c c4sdcc.h
 
 startup.rel: startup.asx
 usbjmptb.rel: usbjmptb.asx
