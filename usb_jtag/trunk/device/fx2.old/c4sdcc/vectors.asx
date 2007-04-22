@@ -85,7 +85,7 @@ _i2c_vect::
       ljmp    nop_isr       ;; 9: I2C
       .ds        5
 nop_isr:
-      iret
+      reti
 
       . = __reset_vector + 0x43
 _USB_Int2AutoVector::
