@@ -92,7 +92,7 @@ static int ezusb_read_hex_record(hex_record *record, FILE *file)
 
 static int ezusb_load(usb_dev_handle *dev, uint32_t address, uint32_t length, uint8_t *data)
 {
-  if(usb_control_msg(dev, 0x40, 0xA0, address, 0, data, length, 5000) <= 0)
+  if(usb_control_msg(dev, 0x40, 0xA0, address, 0, (char *)data, length, 5000) <= 0)
   {
     return 0;
   }
@@ -128,7 +128,7 @@ int ezusb_load_firmware(usb_dev_handle *dev, const char *hex_file)
       break;
     }
 
-    printf("Load L=%X @=%X\n", record.length, record.address);
+    // printf("Load L=%X @=%X\n", record.length, record.address);
 
     if(!ezusb_load(dev, record.address, record.length, record.data))
     {
@@ -145,38 +145,53 @@ int ezusb_load_firmware(usb_dev_handle *dev, const char *hex_file)
   return 1;
 }
 
-#define MY_VID 0x0D06
-#define MY_PID 0x0202
+#define BUFLEN 64
 
-usb_dev_handle *open_dev(void)
+void show_dev(struct usb_device *dev)
 {
-  struct usb_bus *bus;
-  struct usb_device *dev;
+  int j,n;
+  char buf[BUFLEN];
+  usb_dev_handle *dh = NULL; /* the device handle */
 
-  for(bus = usb_get_busses(); bus; bus = bus->next) 
+  printf("found %04X:%04X", dev->descriptor.idVendor, dev->descriptor.idProduct);
+
+  dh = usb_open(dev);
+  if(dh)
   {
-    for(dev = bus->devices; dev; dev = dev->next) 
+    int i;
+    i = usb_set_configuration(dh, 1);
+    if(i >= 0) i = usb_claim_interface(dh, 0);
+    if(i >= 0) 
     {
-      if(dev->descriptor.idVendor == 0x0D06) // telos
-      {
-        return usb_open(dev);
-      };
-      if(dev->descriptor.idVendor == 0x09FB) // Altera
-      {
-        return usb_open(dev);
-      };
+      n = usb_get_string_simple(dh, dev->descriptor.iManufacturer, buf, BUFLEN);
+      if(n>0) { printf(" M'"); for(j=0;j<n;j++) putchar(buf[j]); putchar('\''); };
+      n = usb_get_string_simple(dh, dev->descriptor.iProduct, buf, BUFLEN);
+      if(n>0) { printf(" P'"); for(j=0;j<n;j++) putchar(buf[j]); putchar('\''); };
+      n = usb_get_string_simple(dh, dev->descriptor.iSerialNumber, buf, BUFLEN);
+      if(n>0) { printf(" S'"); for(j=0;j<n;j++) putchar(buf[j]); putchar('\''); };
+      usb_release_interface(dh, 0);
     }
+    usb_close(dh);
   }
-  return NULL;
+  putchar('\n');
 }
 
 int main(int argc, char *argv[])
 {
-  usb_dev_handle *dev = NULL; /* the device handle */
+  usb_dev_handle *dh = NULL; /* the device handle */
+  struct usb_device *fd = NULL;
+  struct usb_bus *bus;
+  int listmode = 0;
 
-  if(argc<2)
+  if(argc==2 && argv[1][0] == ':')
   {
-    fprintf(stderr, "error: no hex file specified\n");
+    listmode = 1;
+  }
+  else if(argc<3)
+  {
+    fprintf(stderr, "syntax: fxpush {hexfile} {vid:pid}\n");
+    fprintf(stderr, "vid or pid or both may be empty (= don't care)\n");
+    fprintf(stderr, "multiple hex vid:pid pairs may be specified\n");
     return -1;
   };
 
@@ -184,20 +199,62 @@ int main(int argc, char *argv[])
   usb_find_busses(); /* find all busses */
   usb_find_devices(); /* find all connected devices */
 
-  if(!(dev = open_dev()))
+  for(bus = usb_get_busses(); bus && !fd; bus = bus->next)
+  {
+    struct usb_device *dev;
+
+    for(dev = bus->devices; dev && !fd; dev = dev->next)
+    {
+      int i;
+      if(listmode)
+      {
+        show_dev(dev);
+      }
+      else for(i=2; i<argc && !fd; i++)
+      {
+        char *sep;
+        unsigned long vid, pid;
+        vid = strtoul(argv[i], &sep, 16);
+        if(sep == argv[i] || dev->descriptor.idVendor == vid)
+        {
+          if(*sep == ':') 
+          {
+            pid = strtoul(sep+1, NULL, 16);
+            if(dev->descriptor.idProduct == pid)
+            {
+              show_dev(dev);
+              fd = dev;
+            }
+          }
+          else
+          {
+            show_dev(dev);
+            fd = dev;
+          }
+        }
+      }
+    }
+  };
+
+  if(listmode)
+  {
+    return 0;
+  };
+
+  if(!fd)
   {
     printf("error: device not found!\n");
     return -1;
   }
 
-  if(!ezusb_load_firmware(dev, argv[1]))
+  dh = usb_open(fd);
+  if(!ezusb_load_firmware(dh, argv[1]))
   {
     printf("error: ezusb_load_firmware failed\n");
     return -1;
   }
-
-  usb_release_interface(dev, 0);
-  usb_close(dev);
+  usb_release_interface(dh, 0);
+  usb_close(dh);
 
   return 0;
 }

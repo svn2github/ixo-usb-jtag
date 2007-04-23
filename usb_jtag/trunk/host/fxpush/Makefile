@@ -1,8 +1,13 @@
-LIBUSB=/cygdrive/c/Programme/LibUSB-Win32
+CFLAGS=-Wall -O2
 
-boot: fxpush.exe
-	./fxpush.exe ../../../ftdemu/fx2/ftdemu.hex 
+LIBUSB  = /cygdrive/c/Programme/LibUSB-Win32
+CFLAGS += -Wall -O2 -I${LIBUSB}/include -L${LIBUSB}/lib/gcc
 
+list: fxpush
+	./fxpush :
 
-fxpush.exe: fxpush.c
-	gcc -o fxpush.exe fxpush.c -I${LIBUSB}/include -L${LIBUSB}/lib/gcc -lusb
+boot: fxpush
+	./fxpush blaster.hex d06 9fb
+
+fxpush: fxpush.c
+	$(CC) $(CFLAGS) -o fxpush fxpush.c -lusb
