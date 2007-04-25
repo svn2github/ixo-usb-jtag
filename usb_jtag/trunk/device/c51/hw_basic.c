@@ -27,6 +27,9 @@
 #define HAVE_AS_MODE 1
 #define HAVE_OE_LED  1
 
+// comment in (define!) if you want outputs disabled when possible
+#define HAVE_OENABLE 1
+
 //-----------------------------------------------------------------------------
 
 /* JTAG TCK, AS/PS DCLK */
@@ -146,8 +149,11 @@ void ProgIO_Init(void)
   OEE = 0x1F;
   mdelay(500); // wait for supply to come up
 
-  // TDO input, others output
-  OEC=(OEC&~bmPROGINOE) | bmPROGOUTOE;
+#ifdef HAVE_OENABLE
+  OEC=(OEC&~(bmPROGINOE | bmPROGOUTOE)); // Output disable
+#else
+  OEC=(OEC&~bmPROGINOE) | bmPROGOUTOE; // Output enable
+#endif
 }
 
 void ProgIO_Set_State(unsigned char d)
@@ -159,8 +165,13 @@ void ProgIO_Set_State(unsigned char d)
    * d.2 => nCE (only #ifdef HAVE_AS_MODE)
    * d.3 => nCS (only #ifdef HAVE_AS_MODE)
    * d.4 => TDI
-   * d.6 => LED / Output Enable
+   * d.5 => LED / Output Enable
    */
+
+#ifdef HAVE_OENABLE
+  if((d & bmBIT5) == 0)
+    OEC=(OEC&~(bmPROGINOE | bmPROGOUTOE)); // Output disable
+#endif
 
   SetTCK((d & bmBIT0) ? 1 : 0);
   SetTMS((d & bmBIT1) ? 1 : 0);
@@ -171,6 +182,11 @@ void ProgIO_Set_State(unsigned char d)
   SetTDI((d & bmBIT4) ? 1 : 0);
 #ifdef HAVE_OE_LED
   SetOELED((d & bmBIT5) ? 1 : 0);
+#endif
+
+#ifdef HAVE_OENABLE
+  if((d & bmBIT5) != 0)
+    OEC=(OEC&~bmPROGINOE) | bmPROGOUTOE; // Output enable
 #endif
 }
 
