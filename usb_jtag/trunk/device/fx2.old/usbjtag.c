@@ -28,9 +28,6 @@
 //-----------------------------------------------------------------------------
 #ifdef SDCC
 #include "c4sdcc.h"
-#ifdef DEBUG
-#include <stdio.h>
-#endif
 #else
 #pragma NOIV               // Do not generate interrupt vectors
 #define INTERRUPT_0  interrupt 0
@@ -40,9 +37,31 @@
 #include "fx2sdly.h"            // SYNCDELAY macro
 #endif
 
+//-----------------------------------------------------------------------------
+// Debug output on TXD1? Tested only with SDCC.
+
+#undef DEBUG
+//#define DEBUG 1
+
+#ifdef DEBUG
+#include <stdio.h>
+#endif
+
 // These are in shift.a51
 extern void ShiftOut(BYTE c);
 extern BYTE ShiftInOut(BYTE c);
+
+//-----------------------------------------------------------------------------
+// This, when defined, enables experimental code instead of the JTAG emulation.
+// The FX2 slave FIFO is configured to behave like a FT245 or FT2232 in FIFO
+// mode. FLAGA=nRXF, FLAGB=nTXE, SLOE=SLRD=nRD, SLWR=WR. That alone is good to
+// allow an external FIFO master to /read/ from the slave FIFO with FIFOADDR=00
+// (EP2). If you want to /write/, FIFOADDR has to be driven to 10 (EP6) for the
+// duration of the write cycle, i.e. be active before and after SLWR=WR. That's
+// a signal not provided by masters that have been designed to interface with a
+// FT245.
+
+// #define FTDEMU 1
 
 //-----------------------------------------------------------------------------
 // If you're using other pins for JTAG, please also change shift.a51!
@@ -70,6 +89,10 @@ sbit TMS = 0xA0+3;
 // Global data
 
 static BOOL Running;
+
+#ifdef FTDEMU
+static WORD EP6_Offset;
+#else
 static BOOL WriteOnly;
 static BYTE ClockBytes;
 static WORD Pending;
@@ -93,7 +116,7 @@ xdata at 0xE000 BYTE OutBuffer[OUTBUFFER_LEN];
 #else
 static BYTE xdata OutBuffer[OUTBUFFER_LEN] _at_ 0xE000;
 #endif
-
+#endif
 
 extern volatile BOOL GotSUD;             // Received setup data flag
 extern volatile BOOL Sleep;
@@ -116,16 +139,55 @@ BYTE AlternateSetting;          // Alternate settings
 //   The following hooks are called by the task dispatcher.
 //-----------------------------------------------------------------------------
 
+void VC_Reset_FPGA(void)
+{
+   IOE &= ~(1<<4);
+   EZUSB_Delay(50);
+   IOE |= (1<<4);
+}
+
+void VC_Reset_IN(void)
+{
+   FIFORESET  = 0x80; SYNCDELAY;   // From now on, NAK all
+   FIFORESET  = 0x06; SYNCDELAY;
+   FIFORESET  = 0x00; SYNCDELAY;   // Restore normal behaviour
+
+   INPKTEND   = 0x86; SYNCDELAY;
+   INPKTEND   = 0x86; SYNCDELAY;
+
+#ifdef FTDEMU
+   EP6_Offset = 0;
+#else
+   Pending = 0;
+   FirstDataInOutBuffer = 0;
+   FirstFreeInOutBuffer = 0;
+#endif
+}
+
+void VC_Reset_OUT(void)
+{
+   EP2FIFOCFG = 0x00; SYNCDELAY;   // disable AUTOOUT for EP2
+
+   FIFORESET  = 0x80; SYNCDELAY;   // From now on, NAK all
+   FIFORESET  = 0x02; SYNCDELAY;
+   FIFORESET  = 0x00; SYNCDELAY;   // Restore normal behaviour
+
+   OUTPKTEND  = 0x82; SYNCDELAY;   // arm twice (double buffered)
+   OUTPKTEND  = 0x82; SYNCDELAY;
+
+#ifdef FTDEMU
+   EP2FIFOCFG = 0x10; SYNCDELAY;  // now enable AUTOOUT for EP2
+#else
+   ClockBytes = 0;
+   WriteOnly = TRUE;
+#endif
+}
+
 void TD_Init(void)              // Called once at startup
 {
    WORD tmp;
 
    Running = FALSE;
-   ClockBytes = 0;
-   Pending = 0;
-   WriteOnly = TRUE;
-   FirstDataInOutBuffer = 0;
-   FirstFreeInOutBuffer = 0;
 
    /* The following code depends on your actual circuit design.
       Make required changes _before_ you try the code! */
@@ -133,24 +195,56 @@ void TD_Init(void)              // Called once at startup
    // set the CPU clock to 48MHz, enable clock output to FPGA
    CPUCS = bmCLKOE | bmCLKSPD1;
 
+#ifndef FTDEMU
    // Use internal 48 MHz, enable output, use "Port" mode for all pins
    IFCONFIG = bmIFCLKSRC | bm3048MHZ | bmIFCLKOE;
+#else
+   // Use internal 48 MHz, enable output, asynchronous slave FIFO mode
+   IFCONFIG = bmIFCLKSRC | bm3048MHZ | bmIFCLKOE 
+            | bmASYNC | bmIFCFG1 | bmIFCFG0;            
+
+   PINFLAGSAB = 0;
+   FIFOPINPOLAR = 0;
+
+   /* SLRD, SLOE == RD# Input: Enables the current FIFO data byte on 
+      D0...D7 when low. Fetched the next FIFO data byte (if available)
+      from the receive FIFO buffer when RD# goes from high to low. */
+
+   FIFOPINPOLAR &= ~(1<<5); // PKTEND: active low
+   FIFOPINPOLAR &= ~(1<<4); // SLOE: active low
+   FIFOPINPOLAR &= ~(1<<3); // SLRD: active low
+
+   /* FLAGA == RXF# Output: When high, do not read data from the FIFO. When
+      low, there is data available in the FIFO which can be read by strobing
+      RD# low, then high again. */
+
+   PINFLAGSAB |= 0x08; // FLAGA is EP2 EMPTY FLAG
+   FIFOPINPOLAR |= (1<<1); // active high
+
+   /* SLWR == WR Input: Writes the data byte on the D0...D7 pins into the transmit
+      FIFO buffer when WR goes from high to low. */
+
+   FIFOPINPOLAR |= (1<<2); // active high
+
+   /* FLAGB == TXE# Output: When high, do not write data into the FIFO. When 
+      low, data can be written into the FIFO by strobing WR high, then low. */
+
+   PINFLAGSAB |= 0xE0; // FLAGB is EP6 FULL FLAG
+   FIFOPINPOLAR |= (1<<0); // active high
+#endif
 
 #ifdef DEBUG
    UART230 |= 2;
    SCON1 = 0x52;
    SMOD1 = 0;
+   printf("Debug active\n");
 #endif
 
-   // If you're using other pins for JTAG, please also change shift.a51!
-   // activate JTAG outputs on Port C
-   OEC = bmTDIOE | bmTCKOE | bmTMSOE;
-
-   // power on the FPGA and all other VCCs, de-assert RESETN
-   IOE = 0x1F;
+   // power on the FPGA and all other VCCs, assert RESETN
+   IOE = 0x1F & ~(1<<4);
    OEE = 0x1F;
    EZUSB_Delay(500); // wait for supply to come up
- 
+
    // The remainder of the code however should be left unchanged...
 
    // Make Timer2 reload at 100 Hz to trigger Keepalive packets
@@ -167,31 +261,117 @@ void TD_Init(void)              // Called once at startup
    APTR1FZ = 1; // Don't freeze
    APTR2FZ = 1; // Don't freeze
 
-   // we are just using the default values, yes this is not necessary...
-   EP1OUTCFG = 0xA0;
-   EP1INCFG = 0xA0;
-   SYNCDELAY;                    // see TRM section 15.14
-   EP2CFG = 0xA2;
-   SYNCDELAY;                    // 
-   EP4CFG = 0xA0;
-   SYNCDELAY;                    // 
-   EP6CFG = 0xE2;
-   SYNCDELAY;                    // 
-   EP8CFG = 0xE0;
+   // define endpoint configuration
 
-   // out endpoints do not come up armed
-   
-   // since the defaults are double buffered we must write dummy byte counts twice
-   SYNCDELAY;                    // 
-   EP2BCL = 0x80;                // arm EP2OUT by writing byte count w/skip.
-   SYNCDELAY;                    // 
-   EP4BCL = 0x80;    
-   SYNCDELAY;                    // 
-   EP2BCL = 0x80;                // arm EP4OUT by writing byte count w/skip.
-   SYNCDELAY;                    // 
-   EP4BCL = 0x80;    
+   REVCTL = 3; SYNCDELAY;          // Allow FW access to FIFO buffer
 
+   EP1OUTCFG  = 0xA0; SYNCDELAY;
+   EP1INCFG   = 0xA0; SYNCDELAY;
+   EP2CFG     = 0xA2; SYNCDELAY;
+   EP4CFG     = 0xA0; SYNCDELAY;
+   EP6CFG     = 0xE2; SYNCDELAY;
+   EP8CFG     = 0xE0; SYNCDELAY;
+
+   EP4FIFOCFG = 0x00; SYNCDELAY;
+   EP8FIFOCFG = 0x00; SYNCDELAY;
+
+   FIFORESET  = 0x80; SYNCDELAY;   // From now on, NAK all
+   FIFORESET  = 0x04; SYNCDELAY;
+   FIFORESET  = 0x08; SYNCDELAY;
+   FIFORESET  = 0x00; SYNCDELAY;   // Restore normal behaviour
+
+   OUTPKTEND  = 0x84; SYNCDELAY;
+   OUTPKTEND  = 0x84; SYNCDELAY;
+
+   VC_Reset_IN();
+   VC_Reset_OUT();
+
+   VC_Reset_FPGA();
 }
+
+#ifdef FTDEMU
+
+//-----------------------------------------------------------------------------
+// TD_Poll does most of the work. EP2 OUT transfers (to FIFO master) are 
+// automatic, but data from FIFO master to the host has to be read "manually"
+// from EP6. There are two reasons for this; first, a status word has to be
+// prepended, and second, the driver expects data on EP1 and not on EP6.
+//-----------------------------------------------------------------------------
+
+void TD_Poll(void) // Called repeatedly while the device is idle
+{
+   if(!Running) return;
+
+   if(!(EP1INCS & bmEPBUSY)) // EP1 available for IN transfer?
+   {
+      if(!(EP68FIFOFLGS & (1<<1))) // EP6 not empty?
+       {
+         WORD m;
+         BYTE o, n;
+
+         AUTOPTRH2 = MSB( EP1INBUF );
+         AUTOPTRL2 = LSB( EP1INBUF );
+
+         AUTOPTR1H = MSB( EP6FIFOBUF + EP6_Offset );
+         AUTOPTR1L = LSB( EP6FIFOBUF + EP6_Offset );
+
+         XAUTODAT2 = 0x31;
+         XAUTODAT2 = 0x60;
+ 
+         m = ((EP6FIFOBCH<<8)|EP6FIFOBCL) - EP6_Offset;
+
+         if(m <= 62)
+         {
+           o = m;
+           if(EP68FIFOFLGS & (1<<2)) // last packet from full fifo?
+             EP6_Offset = 0;
+           else
+             EP6_Offset += o;
+         }
+         else
+         {
+           o = 62;
+           EP6_Offset += o;
+         };
+
+#ifdef DEBUG
+         printf("xfer %d bytes from %u\n", n, EP6_Offset);
+#endif
+
+         for(n = 0; n < o; n++)
+         {
+#ifdef DEBUG
+            BYTE x = XAUTODAT1;
+            printf("- %02X\n", x);
+            XAUTODAT2 = x;
+#else
+            XAUTODAT2 = XAUTODAT1;
+#endif
+         };
+
+         if(EP6_Offset == 0)
+         {
+           INPKTEND = 0x86; SYNCDELAY;
+         }
+
+         SYNCDELAY;
+         EP1INBC = 2 + o;
+         SYNCDELAY;
+
+         TF2 = 1; // Make sure there will be a short transfer soon
+      }
+      else if(TF2)
+      {
+         EP1INBUF[0] = 0x31;
+         EP1INBUF[1] = 0x60;
+         SYNCDELAY;
+         EP1INBC = 2;
+         TF2 = 0;
+      };
+   };
+}
+
+#else
 
 void OutputByte(BYTE d)
 {
@@ -272,7 +452,8 @@ void OutputByte(BYTE d)
 //   All other TD_ and DR_ functions remain as provided with CY3681.
 //
 //-----------------------------------------------------------------------------
-
+//
+ 
 void TD_Poll(void)              // Called repeatedly while the device is idle
 {
    if(!Running) return;
@@ -391,6 +572,8 @@ void TD_Poll(void)              // Called repeatedly while the device is idle
    };
 }
 
+#endif
+
 BOOL TD_Suspend(void)          // Called before the device goes into suspend mode
 {
    return(TRUE);
@@ -406,19 +589,38 @@ BOOL TD_Resume(void)          // Called after the device resumes
 //   The following hooks are called by the end point 0 device request parser.
 //-----------------------------------------------------------------------------
 
+#ifdef DEBUG
+void show_request(char *which)
+{
+  char i;
+  printf("%s:", which);
+  for(i=0;i<8;i++) printf(" %02X", SETUPDAT[i]);
+  printf("\n");
+}
+#endif
+
 BOOL DR_GetDescriptor(void)
 {
+#ifdef DEBUG
+   show_request("GD");
+#endif
    return(TRUE);
 }
 
 BOOL DR_SetConfiguration(void)   // Called when a Set Configuration command is received
 {
+#ifdef DEBUG
+   show_request("SC");
+#endif
    Configuration = SETUPDAT[2];
    return(TRUE);            // Handled by user code
 }
 
 BOOL DR_GetConfiguration(void)   // Called when a Get Configuration command is received
 {
+#ifdef DEBUG
+   show_request("GC");
+#endif
    EP0BUF[0] = Configuration;
    EP0BCH = 0;
    EP0BCL = 1;
@@ -427,12 +629,18 @@ BOOL DR_GetConfiguration(void)   // Called when a Get Configuration command is r
 
 BOOL DR_SetInterface(void)       // Called when a Set Interface command is received
 {
+#ifdef DEBUG
+   show_request("SI");
+#endif
    AlternateSetting = SETUPDAT[2];
    return(TRUE);            // Handled by user code
 }
 
 BOOL DR_GetInterface(void)       // Called when a Set Interface command is received
 {
+#ifdef DEBUG
+   show_request("GI");
+#endif
    EP0BUF[0] = AlternateSetting;
    EP0BCH = 0;
    EP0BCL = 1;
@@ -441,9 +649,12 @@ BOOL DR_GetInterface(void)       // Called when a Set Interface command is recei
 
 BOOL DR_GetStatus(void)
 {
+#ifdef DEBUG
+    //show_request("GS");
+#endif
    if(SETUPDAT[0]==0x40)
    {
-      Running = 1;
+      Running = TRUE;
       return FALSE;
    };
 
@@ -452,30 +663,77 @@ BOOL DR_GetStatus(void)
 
 BOOL DR_ClearFeature(void)
 {
+#ifdef DEBUG
+   show_request("CF");
+#endif
    return(TRUE);
 }
 
 BOOL DR_SetFeature(void)
 {
+#ifdef DEBUG
+   show_request("SF");
+#endif
    return(TRUE);
 }
 
 BOOL DR_VendorCmnd(void)
 {
-   if(SETUPDAT[1] == 0x90) // READ EEPROM
-   {
-      BYTE addr = (SETUPDAT[4]<<1) & 0x7F;
-      EP0BUF[0] = PROM[addr];
-      EP0BUF[1] = PROM[addr+1];
-   }
-   else
-   {
-      EP0BUF[0] = 0x36;
-      EP0BUF[1] = 0x83;
-   }
+#ifdef DEBUG
+   show_request("VC");
+#endif
 
-   EP0BCH = 0;
-   EP0BCL = 2; // Arm endpoint with # bytes to transfer
+   switch(SETUPDAT[1])
+   {
+     case 0x00: // 0x40, 0x00: reset
+     {
+       VC_Reset_IN();
+       VC_Reset_OUT();
+       break;
+     }
+     // 0x40, 0x01: set modem control
+     // 0x40, 0x02: set flow control
+     // 0x40, 0x03: set baud rate
+     // 0x40, 0x04: set line property
+     case 0x05: // 0xC0, 0x05: ? get status? reset?
+     {
+#if 0
+        VC_Reset_IN();
+        VC_Reset_OUT();
+#endif
+        EP0BUF[0] = 0x36;
+        EP0BUF[1] = 0x83;
+        EP0BCH = 0;
+        EP0BCL = 2; // Arm endpoint with # bytes to transfer
+        break;
+     }
+     // 0x40, 0x09: set latency timer
+     // 0xC0, 0x0A: get latency timer
+     // 0x40, 0x0B: set bitbang mode (mode << 8)
+     // 0xC0, 0x0C: get pins
+     case 0x90: // 0xC0, 0x90: read eeprom ([4] has word addr)
+     {
+        BYTE addr = (SETUPDAT[4]<<1) & 0x7F;
+        EP0BUF[0] = PROM[addr];
+        EP0BUF[1] = PROM[addr+1];
+        EP0BCH = 0;
+        EP0BCL = 2; // Arm endpoint with # bytes to transfer
+        break;
+     }
+     // 0x40, 0x91: write eeprom
+     // 0x40, 0x92: erase eeprom
+     default:
+     {
+        if(SETUPDAT[0] == 0xC0)
+        {
+          EP0BUF[0] = 0x36;
+          EP0BUF[1] = 0x83;
+          EP0BCH = 0;
+          EP0BCL = 2; // Arm endpoint with # bytes to transfer
+        };
+     }
+   };
+
    EP0CS |= bmHSNAK; // Acknowledge handshake phase of device request
 
    return(FALSE); // no error; command handled OK
@@ -489,7 +747,7 @@ BOOL DR_VendorCmnd(void)
 // Setup Data Available Interrupt Handler
 void ISR_Sudav(void) INTERRUPT_0
 {
-#ifdef DEBUG
+#ifdef DEBUG_IRQ
    putchar('S');
 #endif
    GotSUD = TRUE;            // Set flag
@@ -500,7 +758,7 @@ void ISR_Sudav(void) INTERRUPT_0
 // Setup Token Interrupt Handler
 void ISR_Sutok(void) INTERRUPT_0
 {
-#ifdef DEBUG
+#ifdef DEBUG_IRQ
    putchar('O');
 #endif
    EZUSB_IRQ_CLEAR();
@@ -509,7 +767,7 @@ void ISR_Sutok(void) INTERRUPT_0
 
 void ISR_Sof(void) INTERRUPT_0
 {
-#ifdef DEBUG
+#ifdef DEBUG_IRQ
    putchar('F');
 #endif
    EZUSB_IRQ_CLEAR();
@@ -518,7 +776,7 @@ void ISR_Sof(void) INTERRUPT_0
 
 void ISR_Ures(void) INTERRUPT_0
 {
-#ifdef DEBUG
+#ifdef DEBUG_IRQ
    putchar('R');
 #endif
    if (EZUSB_HIGHSPEED())
@@ -538,7 +796,7 @@ void ISR_Ures(void) INTERRUPT_0
 
 void ISR_Susp(void) INTERRUPT_0
 {
-#ifdef DEBUG
+#ifdef DEBUG_IRQ
    putchar('P');
 #endif
    Sleep = TRUE;
@@ -548,7 +806,7 @@ void ISR_Susp(void) INTERRUPT_0
 
 void ISR_Highspeed(void) INTERRUPT_0
 {
-#ifdef DEBUG
+#ifdef DEBUG_IRQ
    putchar('H');
 #endif
    if (EZUSB_HIGHSPEED())
