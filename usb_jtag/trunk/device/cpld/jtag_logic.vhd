@@ -76,7 +76,7 @@ ARCHITECTURE spec OF jtag_logic IS
 	SIGNAL state, next_state: states;
 	
 BEGIN
-	sm: PROCESS(CLK, nRXF, nTXE, state, bitcount, ioshifter, do_output)
+	sm: PROCESS(nRXF, nTXE, state, bitcount, ioshifter, do_output)
 
 	BEGIN
 		CASE state IS
@@ -167,7 +167,7 @@ BEGIN
 		END CASE;
 	END PROCESS sm;
 
-	out_sm: PROCESS(CLK, state, ioshifter, B_TDO, bitcount, carry)
+	out_sm: PROCESS(CLK)
 
 	BEGIN
 		IF CLK = '1' AND CLK'event THEN
