@@ -49,7 +49,6 @@ FILES: Beside this README, this archive contains the following files:
  - host/eecksum: Code to compute a valid checksum for FT245BM EEPROM emulation
  - host/devtest: Small utility to do some basic tests with usb_jtag adapter
  - host/openocd: Experimental usb_jtag/USB-Blaster driver for OpenOCD
- - host/openwince: Experimental usb_jtag/USB-Blaster driver for openwince JTAG
 
 Where appropriate, the directories contain a file "readme.txt" with further
 information about purpose, usage and history.

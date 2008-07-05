@@ -36,6 +36,10 @@ session to the server running on localhost at port 4444): would yield this:
   0x20830dd (/32)
   exit
 
+Changes since release on 2007-02-15:
+  - Updated patch to match OpenOCD SVN revision 753 (as of 2008-07-06). The
+    update was contributed by Anthony Liu - thanks!!
+
 Changes since initial release on 2006-09-03:
   - added this readme.txt
   - reorganized my project folder: diff is now created from Subversion repository
