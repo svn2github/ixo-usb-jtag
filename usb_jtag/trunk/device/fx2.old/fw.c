@@ -174,6 +174,9 @@ void main(void)
    USBIE |= bmSUDAV | bmSUTOK | bmSUSP | bmURES | bmHSGRANT;   // Enable selected interrupts
    EA = 1;                  // Enable 8051 interrupts
 
+#if 0
+   EZUSB_Discon(1); // always renumerate 
+#else
 #ifndef NO_RENUM
    // Renumerate if necessary.  Do this by checking the renum bit.  If it
    // is already set, there is no need to renumerate.  The renum bit will
@@ -182,6 +185,7 @@ void main(void)
    {
        EZUSB_Discon(TRUE);   // renumerate
    }
+#endif
 #endif
 
    // unconditionally re-connect.  If we loaded from eeprom we are
