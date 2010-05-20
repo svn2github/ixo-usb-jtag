@@ -23,6 +23,7 @@ ifeq (${HARDWARE},)
   #HARDWARE=hw_saxo_l
   #HARDWARE=hw_xpcu_i
   #HARDWARE=hw_xpcu_x
+  #HARDWARE=hw_nexys
 endif
 
 CC=sdcc
