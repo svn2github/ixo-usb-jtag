@@ -37,6 +37,9 @@
 // comment in (define!) if you want outputs disabled when possible
 //#define HAVE_OENABLE 1
 
+// comment out (undefine!) if you want to disable clock signal to FPGA
+#define CLOCK_TO_FPGA 1
+
 //-----------------------------------------------------------------------------
 
 /* JTAG TCK, AS/PS DCLK */
@@ -158,8 +161,11 @@ void ProgIO_Init(void)
      Make required changes _before_ you try the code! */
 
   // set the CPU clock to 48MHz, enable clock output to FPGA
-  // Note: You may remove bmCLKOE to disable the clock output to the FPGA
+#ifdef CLOCK_TO_FPGA
   CPUCS = bmCLKOE | bmCLKSPD1;
+#else
+  CPUCS = bmCLKSPD1;
+#endif
 
   // Use internal 48 MHz, enable output, use "Port" mode for all pins
   IFCONFIG = bmIFCLKSRC | bm3048MHZ | bmIFCLKOE;
