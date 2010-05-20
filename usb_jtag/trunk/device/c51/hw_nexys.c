@@ -63,17 +63,17 @@ sbit at 0xB0          TDO; /* Port D.0 */
 #define bmTDOOE       bmBIT0 
 #define GetTDO(x)     TDO
 
-/* USB Power-On*/
+/* USB Power-On */
 
 sbit at 0xB7          USBPOW; /* Port D.7 */
-#define bmUSBPOWOE       bmBIT7
-#define SetUSBPOW(x)     do{USBPOW=(x);}while(0)
+#define bmUSBPOWOE    bmBIT7
+#define SetUSBPOW(x)  do{USBPOW=(x);}while(0)
 
-/* USB JTAG enable pin*/
+/* USB JTAG enable pin */
 
-sbit at 0xB5          USBJTAG; /* Port D.5 */
-#define bmUSBJTAGOE       bmBIT5
-#define SetUSBJTAG(x)     do{USBJTAG=(x);}while(0)
+sbit at 0xB5          USBJTAG; /* Port D.5 - NOTE: N/A on Nexys2 */
+#define bmUSBJTAGOE   bmBIT5
+#define SetUSBJTAG(x) do{USBJTAG=(x);}while(0)
 
 //-----------------------------------------------------------------------------
 
@@ -81,7 +81,7 @@ sbit at 0xB5          USBJTAG; /* Port D.5 */
 
   /* AS DATAOUT, PS nSTATUS */
 
-  sbit at 0xA6        ASDO; /* Port C.6 */
+  sbit at 0xA6        ASDO; /* Port C.6 - NOTE: N/A on Nexys(2) */
   #define bmASDOOE    bmBIT6
   #define GetASDO(x)  ASDO
 
@@ -98,14 +98,14 @@ sbit at 0xB5          USBJTAG; /* Port D.5 */
 
   /* AS Mode nCS */
 
-  sbit at 0xA4        NCS; /* Port C.4 */
+  sbit at 0xA4        NCS; /* Port C.4 - NOTE: N/A on Nexys(2) */
   #define bmNCSOE     bmBIT4
   #define SetNCS(x)   do{NCS=(x);}while(0)
   #define GetNCS(x)   NCS
 
   /* AS Mode nCE */
 
-  sbit at 0xA5        NCE; /* Port C.5 */
+  sbit at 0xA5        NCE; /* Port C.5 - NOTE: N/A on Nexys(2) */
   #define bmNCEOE     bmBIT5
   #define SetNCE(x)   do{NCE=(x);}while(0)
 
@@ -127,7 +127,7 @@ sbit at 0xB5          USBJTAG; /* Port D.5 */
 
 #ifdef HAVE_OE_LED
 
-  sbit at 0xA7        OELED; /* Port C.7 */
+  sbit at 0xA7        OELED; /* Port C.7 - NOTE: N/A on Nexys(2) */
   #define bmOELEDOE   bmBIT7
   #define SetOELED(x) do{OELED=(x);}while(0)
 
@@ -158,12 +158,15 @@ void ProgIO_Init(void)
      Make required changes _before_ you try the code! */
 
   // set the CPU clock to 48MHz, enable clock output to FPGA
+  // Note: You may remove bmCLKOE to disable the clock output to the FPGA
   CPUCS = bmCLKOE | bmCLKSPD1;
 
   // Use internal 48 MHz, enable output, use "Port" mode for all pins
   IFCONFIG = bmIFCLKSRC | bm3048MHZ | bmIFCLKOE;
 
-  // power on the onboard FPGA and all other VCCs, de-assert RESETN
+  // power on the onboard FPGA and enable jtag chain
+  // TODO_Later: Is it possible to do OED (output enable) assignment after the two Set* calls,
+  // in order to avoid any glitches on the output?
   OED=(OED&~bmPROGINOE) | bmPROGOUTOE; // Output enable
   SetUSBJTAG(1);
   SetUSBPOW(1);
