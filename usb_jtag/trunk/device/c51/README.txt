@@ -36,6 +36,23 @@ There's a discussion thread in the fpga4fun forum about this firmware:
     http://www.fpga4fun.com/forum/viewtopic.php?t=483
 
 
+== Use with Nexys 1 / 2 Boards ==
+
+Through a contribution by Sune Mai, this code can be used with the Digilent
+Nexys / Nexys2 boards.
+
+    http://www.digilentinc.com/nexys/
+    http://www.digilentinc.com/nexys2/
+
+The hardware-specific code file is hw_nexys.c, just change the line
+"HARDWARE=hw_basic" to "HARDWARE=hw_nexys" in the file "Makefile" to use it.
+
+Also, you may use the "nexys2prog" script by Andy Ross, available from the
+same place this code is available from:
+
+    https://sourceforge.net/projects/ixo-jtag/
+
+
 == Adapting the code to your hardware ==
 
 As is, the code assumes the following pin assignment:
@@ -80,6 +97,10 @@ Compile for the XPCU with e.g. "make HARDWARE=hw_xpcu_x".
 
 == History ==
 
+Changes since previous release 2008-07-05:
+  - Imported to SourceForge, please see the project page:
+    https://sourceforge.net/projects/ixo-jtag/
+
 Changes since previous release on 2007-02-15:
   - Jean Nicolle contributed hw_saxo_l.c for the FX2 boards from fpga4fun.com
   - fx2/Makefile fixed to build correct libfx2.lib even under Windows.
@@ -97,7 +118,4 @@ Changes since initial release on 2006-04-23:
   - added unique proper product and vendor ID (thanks to Antti Lukats!)
   - fixed checksum in eeprom.c
   - added comments about AS/PS mode pins in usbjtag.c
-
-
-
 

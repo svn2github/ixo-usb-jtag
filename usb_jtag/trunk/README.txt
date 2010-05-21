@@ -6,18 +6,34 @@ Copyright (C) 2005-2007 Kolja Waschk, ixo.de
 
 -----------------------------------------------------------------------------
 
-usbj_tag is free software; you can redistribute it and/or modify it under the
+usb_jtag is free software; you can redistribute it and/or modify it under the
 terms of the GNU General Public License as published by the Free Software
 Foundation; either version 2 of the License, or (at your option) any later
 version.
 
-usbj_tag is distributed in the hope that it will be useful, but WITHOUT ANY
+usb_jtag is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
 A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program as file "copying.txt"; if not, write to the Free Software 
+along with this program as the file COPYING.txt; if not, write to the Free Software 
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301  USA
+
+-----------------------------------------------------------------------------
+
+NEWS:
+- May 2010: This project has been moved to SourceForge:
+  
+             https://sourceforge.net/projects/ixo-jtag/
+  
+  I (Hauke D.) have taken over the maintenance of this project for now. I've
+  mostly just imported this usb_jtag project into the SVN repository, applied a
+  few small patches, made a few minor updates, and did some general cleanup.
+  IMPORTANT: Since I only have a Nexys2 FPGA board, I can currently only vouch
+  for the firmware in the device/c51/ directory, all the other stuff might be
+  in various states of decay - if you are using any of these things in
+  production, please let me know so I can update this notice. Also, patches
+  are *always* welcome :)
 
 -----------------------------------------------------------------------------
 
@@ -50,7 +66,7 @@ FILES: Beside this README, this archive contains the following files:
  - host/devtest: Small utility to do some basic tests with usb_jtag adapter
  - host/openocd: Experimental usb_jtag/USB-Blaster driver for OpenOCD
 
-Where appropriate, the directories contain a file "readme.txt" with further
+Where appropriate, the directories contain a file "README.txt" with further
 information about purpose, usage and history.
 
 -----------------------------------------------------------------------------
