@@ -1,0 +1,301 @@
+<html>
+
+ <head>
+  <title>kawk: USB JTAG adapter</title>
+  <link rel="stylesheet" type="text/css" href="/css/screen.css">
+ </head>
+
+ <body>
+
+  <div id="head">
+   <span id="logo"></span>
+   <h1>USB JTAG adapter</h1>
+   <!--
+   <ul id="nav">
+    <li><a href="search" title="search" accesskey="a">search</a></li>
+    <span id="separator">&nbsp;</span>
+    <li><a href="search" title="search" accesskey="a">search</a></li>
+   </ul>
+   -->
+  </div>
+  
+  <div id="address">
+   <div id="name">kolja waschk</div>
+   <div id="street">haubachstra&szlig;e 39</div>
+   <div id="city">D-22765 hamburg</div>
+   <div id="tel"><a href="tel:+49-40-88913034">+49-40-88913034</a></div>
+   <div id="mail">usbjtag@<span>ixo.de</span></div>
+   <div id="www"><a href="http://www.ixo.de">www.ixo.de</a></div>
+  </div>
+
+  <div id="article">
+<h2>Project Background</h2>
+
+<p>
+The goal of the project was to build a budget USB JTAG adapter. Basically
+it should allow direct I/O access to the JTAG signals from an USB host, but
+additionally implement some sort of parallel/serial conversion as well for
+higher transfer rates. While a combination of USB I/O device like FTDI FT245BM
+with a custom logic for the parallel/serial conversion could be used, I started
+with a prototype implementation in software on a Cypress EZ-USB FX2 controller.
+That happens to be the controller in a device manufactured by my employer,
+where it is used to configure an Altera Cyclone device. That gave me a nice
+platform for testing.
+</p><p>
+On the USB side, it now uses the same protocol as Altera's USB-Blaster. The
+drivers that I developed for my adapter do work with the Blaster as well. To
+the host PC, the only really noticeable difference are vendor and product ID 
+and the product description string (0x16C0/0x06AD/USB-JTAG-IF instead of
+0x9FB/0x6001/USB-Blaster).
+</p>
+
+<h2>Myth busting</h2>
+<h3>USB JTAG isn't USB JTAG</h3>
+<p>
+There are so many "USB JTAG adapters" and all are different and usually
+incompatible. There's no single "USB JTAG" standard. There even may exist 
+many different USB JTAG adapters for the same target hardware, but which
+are incompatible to each other with regard to the software on the host.
+</p>
+<p>
+You should first look for a development software that is right for your
+target. And then, afterwards, look for an USB JTAG adapter that is compatible
+with that software. The adapter presented here is compatible with openwince and
+OpenOCD, and easily can be made compatible with Altera software. But on the
+other hand, openwince works better with generic parallel port adapters, and
+OpenOCD works better with FT2232-based adapters. See the OpenOCD page for more
+info about that.
+</p>
+<h3>USB JTAG adapters aren't necessarily faster than parallel port adapters</h3>
+<p>
+In fact, higher bit rates are possible - but not necessarily with every given
+USB adapter just because it works over USB. It also depends on the host
+software; it has to be written so that it specifically supports USB adapters.
+If you connect a parallel port adapter through an "USB to parallel port
+converter", it'll be dead slow. But that's not the fault of the parallel port
+adapter...</p>
+<p> The adapter presented here is (circa) as fast as a parallel port
+adapter with proper software. You'll probably prefer it over a parallel port
+solution anyway, simply because many hosts (especially notebooks) nowadays
+don't have a parallel port anymore and USB connectors are less bulky...
+</p>
+<h3>Why use this one?</h3>
+<p>
+A reason to consider my design can be (at least) one of the following:
+<ul>
+<li>You're looking for an USB JTAG adapter that can be used with openwince
+or Altera software</li>
+<li>You already have a Cypress FX2 USB Controller in your design that you want
+to use to control other devices via JTAG.
+<li>You're curious to find out how a FX2 is able to (partially) emulate a FTDI FT245.
+</ul>
+</p>
+
+
+<h2>Download</h2>
+
+<!--
+<h3>Most current release with everything included</h3>
+-->
+<ul>
+<li>
+<a href="usb_jtag-20080705-1200.zip">usb_jtag-20080705-1200.zip</a>
+(contains all C and VHDL sources for firmware, logic, and driver patches)
+</li>
+</ul>
+<p>
+A patch for <a href="http://openocd.berlios.de/web/">OpenOCD</a> is included
+in the ZIP. It doesn't contain an openwince JTAG tools patch any more, because
+<a href="http://urjtag.org">UrJTAG</a>, the successor to the openwince JTAG
+tools, has this support integrated out of the box! Note: by default, the code
+looks for an adapter with Altera's USB-Blaster vendor/product ID (from the
+driver's view, the only difference between the adapters is the ID).  To detect
+an adapter with my ID instead, additional configuration is needed.</p>
+<h2>News</h2>
+<p>
+2008-07: I've prepared a new ZIP. The only actual enhancement is an updated patch for
+OpenOCD (thanks Anthony Liu) and removal of the openwince JTAG tools patch in favor of
+UrJTAG.
+</p>
+2007-11: The <a href="http://www.urjtag.org">UrJTAG project</a> now hosts an up-to-date and
+actively developed version of the jtag tools (formerly openwince jtag tools). My supporting code for
+the USB-Blaster, my own adapter, and Xilinx cable are integrated and already got some more bugs fixed.
+<p>
+2007-02: I have taken the USRP firmware from the <a href="http://gnuradio.org">GNU Radio Project</a>
+to construct a new FX2 firmware that can be built with <a href="http://sdcc.sourceforge.net">SDCC</a>
+instead of Keil tools. I hope I'll be able to make it more portable, so in the future maybe it can
+be built for Silicon Labs and Cypress chips as you like. Summary of new features in this release:
+</p>
+<ul>
+  <li>Written to be compiled with SDCC, not Keil</li>
+  <li>On-the-fly computation of "EEPROM" contents from the descriptor data (with checksum)</li>
+  <li>Better support in code layout for different hardware</li>
+  <li>Can be built to run on Xilinx Spartan-3E Starter Kit and possibly Platform Cable USB</li>
+</ul>
+</p>
+<p>
+2007-01: The "notes" about <a href="#xilinx">using my firmware on a Xilinx Platform Cable USB</a> have been
+extended and now contain a link to download a basic openwince patch to support
+the Xilinx cable directly (with original firmware and CPLD code)
+</p>
+<p>
+2007-01: A new release ZIP has been prepared. It contains all firmware source code, logic definitions
+and the driver code for OpenOCD and openwince JTAG. Some sections that previously were on this page now
+can be found in readme files within the ZIP file.
+</p>
+
+<h2>Links and related projects</h2>
+<p>
+There are at least two long-living discussion threads where this project is mentioned
+and discussed:
+<ul>
+<li>In the <a href="http://www.fpga4fun.com/forum/viewtopic.php?t=483">fpga4fun Forum</a></li>
+<li>And in <a href="http://www.edaboard.com/ftopic114946-30.html">this discussion at www.edaboard.com</a></li> 
+</ul>
+I'm notified about new posts there, so you're encouraged to ask questions of public interest about usbjtag
+online in those forums.
+</p>
+<p>
+Other projects which utilize my FX2 firmware (I'm happy to learn about more!):
+<ul>
+<p>
+ <li>The <a href="http://www.fpga4fun.com/board_Xylo.html"> Saxo and Xylo FPGA development
+boards</a> from <a href="http://www.fpga4fun.com">fpga4fun.com</a>.</li>
+ <li>The <a href="http://fpga4u.epfl.ch/">FPGA4U board</a>, designed in the
+<a href="http://ic.epfl.ch/">EPFL</a>. An adapted version of the firmware
+is available from the Wiki there.</li>
+</ul>
+</p>
+
+<h2>Hardware suggestions</h2>
+
+<p>
+Below, three different hardware variants are shown in principle. Two are based
+on intelligent USB microcontrollers, one makes use of FTDI's FT245
+USB-to-parallel chip.
+</p>
+<p>
+Unfortunately, I do not have the time to present finished schematics for either
+variant of the USB JTAG adapter. As the source is quite incomplete anyway, if
+you're using it you're probably one of those people who easily can make up
+their own schematics. In principle, they are like the drawings below (best
+viewed with fixed-width font!). Add power supply, voltage regulator(s), level
+shifter, termination resistors, and more, as required...
+</p>
+<p>
+<h3>Variant A: Cypress FX2</h3>
+<pre>
+Using Cypress FX2 as USB JTAG Adapter, booted from host PC (no EEPROM)
+
+              ____________
+             |            |
+             | Cypress    |
+        USB__| EZ-USB FX2 |__JTAG(TDI,TDO,TCK,TMS)
+             | CY7C68013A |
+             |____________|
+              __|__________
+             |             |
+             | 24 MHz XTAL |
+             |_____________|
+
+</pre>
+</p>
+<p>
+<h3>Variant B: FTDI FT245 plus CPLD</h3>
+<pre>
+Using FTDI FT245BM plus EEPROM 93C46 plus CPLD EPM7064
+
+              _________
+             |         |
+             | AT93C46 |
+             |_________|
+              __|__________    _________
+             |             |  |         |
+        USB__| FTDI 245BM  |__| EPM7064 |__JTAG (B_TDO,B_TDI,B_TMS,B_TCK)
+             |_____________|  |_________|
+              __|__________    _|___________
+             |             |  |             |
+             | 6 MHz XTAL  |  | 24 MHz Osc. |
+             |_____________|  |_____________|
+
+</pre>
+</p>
+<p>
+Note: The newer FT245R has on-chip EEPROM and oscillator, so the 93C46 and 6 MHz XTAL
+aren't needed anymore. Furthermore it can output 12 MHz on OSCO; it maybe possible
+to use the clock for the EPM7064 (then running at half the original speed).
+</p></p>
+A working implementation with CPLD can be seen in the upper right of 
+<a href="eb2_usbjtag_eth.jpg">this picture</a>,
+connected to an Altium Live Design Evaluation Board EB2, Cyclone Edition,
+instead of the parallel port cable. The board at the bottom of the picture was a
+PCI Ethernet card. I desoldered the PCI MAC chip and instead wired the PHY directly to 
+the EB2; to evaluate OpenCores Ethernet MAC in the FPGA. USB has been added
+as a <a href="wired_isp1106.jpg">module with just an USB transceiver</a> and 
+48 MHz oscillator on it, driven by OpenCores.org USB 1.1 function core.
+</p>
+<p>
+<h3>Variant C: SiLabs C8051F32x</h3>
+<pre>
+Using Silicon Laboratories C8051F32x with firmware in integrated flash (unfinished)
+
+              ____________
+             |            |
+             | SiLabs     |
+        USB__| C8051F32x  |__JTAG(TDI,TDO,TCK,TMS)
+             |____________|
+ 
+</pre>
+</p>
+<p>
+Variant C isn't finished yet. I first tried to implement it on a C8051F326, after I 
+<a href="wired_f326.jpg">managed to wire up such a chip</a> to a demo board (the "Toolstick-EK"). It
+turned out that a F326 isn't suited for this task because it can't have an EP2 OUT as the FT245
+uses. However, the F321 should work, and my next goal is to build a replacement firmware for
+the "Toolstick Base Adapter with Debug Adapter". Thanks to Ricky who's working on the 
+<a href="http://ec2drv.sourceforge.net">EC2DRV project</a>; he's already has been a great help
+while finding out how to upload firmware to the Toolstick.
+</p>
+
+<h2><a name="xilinx"></a>Xilinx Platform Cable USB (DLC9)</h2>
+<h3>Also known as "Variant D"...</h3>
+
+<p>
+The Xilinx cable, "XPCU", consists of a CY7C68013A (FX2) plus CPLD. With a
+little research about the CPLD functions, I was able to adapt my firmware so it
+can be run on the XPCU. The necessary changes are included in the latest release
+above. In theory, it is possible to turn the XPCU into an USB-Blaster using that
+firmware ;) - I practically tested it on the Spartan-3E starter kit (with
+embedded "cable"). The CPLD doesn't have to be modified.
+</p>
+<p>
+While working with it, I also wrote an experimental driver for openwince to
+support the XPCU with original Xilinx firmware and CPLD. That code has now been
+merged into <a href="http://urjtag.org">UrJTAG</a>, therefore there's no
+separate download available here anymore.
+
+<h2>JTAG Tracing</h2>
+
+<p>
+In order to trace what's happening on the JTAG chain at the adapter, I've
+written this small Perl script <a href="lusbb_decode-20060903.pl">lusbb_decode-20060903.pl</a>.
+It is able to interpret log files from
+<a href="http://www.hhdsoftware.com/usbmon.html">HHD's USB Monitor</a>
+or Linux kernel messages from OpenOCD with libftd2xx or Altera's jtagd and show you
+the actual IR and DR scans.  It does not work yet with libftdi. With kernel
+2.6, you can enable those messages using the command
+<pre>
+  echo 1 > /sys/module/usbcore/parameters/usbfs_snoop
+</pre>
+</p>
+
+<h2>Final note</h2>
+</p>
+Quartus, SignalTap and USB-Blaster are trademarks of Altera Corporation.
+ChipScope and probably "Platform Cable" are trademarks of Xilinx Inc.  </p>
+
+<p align="right"><img src="/img/feng-ker-ya_trans.gif"/>
+</div>
+</body>
+</html>
+
