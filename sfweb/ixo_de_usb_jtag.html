@@ -1,34 +1,28 @@
-<html>
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>ixo.de USB JTAG pod - USB JTAG adapter</title>
+	<link rel="stylesheet" type="text/css" href="ixo-jtag.css" />
+</head>
+<body>
+<h1>USB JTAG adapter</h1>
 
- <head>
-  <title>kawk: USB JTAG adapter</title>
-  <link rel="stylesheet" type="text/css" href="/css/screen.css">
- </head>
+<p><b>[<a href="http://ixo-jtag.sourceforge.net/">Back</a>]</b></p>
 
- <body>
+<p>[Retreived and reformatted from <a href="http://www.ixo.de/info/usb_jtag/">http://www.ixo.de/info/usb_jtag/</a> on May 21, 2010]</p>
 
-  <div id="head">
-   <span id="logo"></span>
-   <h1>USB JTAG adapter</h1>
-   <!--
-   <ul id="nav">
-    <li><a href="search" title="search" accesskey="a">search</a></li>
-    <span id="separator">&nbsp;</span>
-    <li><a href="search" title="search" accesskey="a">search</a></li>
-   </ul>
-   -->
-  </div>
-  
-  <div id="address">
-   <div id="name">kolja waschk</div>
-   <div id="street">haubachstra&szlig;e 39</div>
-   <div id="city">D-22765 hamburg</div>
-   <div id="tel"><a href="tel:+49-40-88913034">+49-40-88913034</a></div>
-   <div id="mail">usbjtag@<span>ixo.de</span></div>
-   <div id="www"><a href="http://www.ixo.de">www.ixo.de</a></div>
-  </div>
+<p id="address">
+   kolja waschk<br/>
+   haubachstra&szlig;e 39<br/>
+   D-22765 hamburg<br/>
+   <a href="tel:+49-40-88913034">+49-40-88913034</a><br/>
+   usbjtag@<span>ixo.de</span><br/>
+   <a href="http://www.ixo.de">www.ixo.de</a>
+</p>
 
-  <div id="article">
 <h2>Project Background</h2>
 
 <p>
@@ -82,24 +76,21 @@ don't have a parallel port anymore and USB connectors are less bulky...
 <h3>Why use this one?</h3>
 <p>
 A reason to consider my design can be (at least) one of the following:
+</p>
 <ul>
 <li>You're looking for an USB JTAG adapter that can be used with openwince
 or Altera software</li>
 <li>You already have a Cypress FX2 USB Controller in your design that you want
-to use to control other devices via JTAG.
-<li>You're curious to find out how a FX2 is able to (partially) emulate a FTDI FT245.
+to use to control other devices via JTAG.</li>
+<li>You're curious to find out how a FX2 is able to (partially) emulate a FTDI FT245.</li>
 </ul>
-</p>
 
 
 <h2>Download</h2>
 
-<!--
-<h3>Most current release with everything included</h3>
--->
 <ul>
 <li>
-<a href="usb_jtag-20080705-1200.zip">usb_jtag-20080705-1200.zip</a>
+<del>usb_jtag-20080705-1200.zip</del> [<a href="http://ixo-jtag.svn.sourceforge.net/viewvc/ixo-jtag/usb_jtag/trunk/">this has moved</a>]
 (contains all C and VHDL sources for firmware, logic, and driver patches)
 </li>
 </ul>
@@ -117,9 +108,9 @@ an adapter with my ID instead, additional configuration is needed.</p>
 OpenOCD (thanks Anthony Liu) and removal of the openwince JTAG tools patch in favor of
 UrJTAG.
 </p>
-2007-11: The <a href="http://www.urjtag.org">UrJTAG project</a> now hosts an up-to-date and
+<p>2007-11: The <a href="http://www.urjtag.org">UrJTAG project</a> now hosts an up-to-date and
 actively developed version of the jtag tools (formerly openwince jtag tools). My supporting code for
-the USB-Blaster, my own adapter, and Xilinx cable are integrated and already got some more bugs fixed.
+the USB-Blaster, my own adapter, and Xilinx cable are integrated and already got some more bugs fixed.</p>
 <p>
 2007-02: I have taken the USRP firmware from the <a href="http://gnuradio.org">GNU Radio Project</a>
 to construct a new FX2 firmware that can be built with <a href="http://sdcc.sourceforge.net">SDCC</a>
@@ -132,7 +123,6 @@ be built for Silicon Labs and Cypress chips as you like. Summary of new features
   <li>Better support in code layout for different hardware</li>
   <li>Can be built to run on Xilinx Spartan-3E Starter Kit and possibly Platform Cable USB</li>
 </ul>
-</p>
 <p>
 2007-01: The "notes" about <a href="#xilinx">using my firmware on a Xilinx Platform Cable USB</a> have been
 extended and now contain a link to download a basic openwince patch to support
@@ -148,24 +138,25 @@ can be found in readme files within the ZIP file.
 <p>
 There are at least two long-living discussion threads where this project is mentioned
 and discussed:
+</p>
 <ul>
 <li>In the <a href="http://www.fpga4fun.com/forum/viewtopic.php?t=483">fpga4fun Forum</a></li>
 <li>And in <a href="http://www.edaboard.com/ftopic114946-30.html">this discussion at www.edaboard.com</a></li> 
 </ul>
+<p>
 I'm notified about new posts there, so you're encouraged to ask questions of public interest about usbjtag
 online in those forums.
 </p>
 <p>
 Other projects which utilize my FX2 firmware (I'm happy to learn about more!):
+</p>
 <ul>
-<p>
  <li>The <a href="http://www.fpga4fun.com/board_Xylo.html"> Saxo and Xylo FPGA development
 boards</a> from <a href="http://www.fpga4fun.com">fpga4fun.com</a>.</li>
  <li>The <a href="http://fpga4u.epfl.ch/">FPGA4U board</a>, designed in the
 <a href="http://ic.epfl.ch/">EPFL</a>. An adapted version of the firmware
 is available from the Wiki there.</li>
 </ul>
-</p>
 
 <h2>Hardware suggestions</h2>
 
@@ -182,7 +173,6 @@ their own schematics. In principle, they are like the drawings below (best
 viewed with fixed-width font!). Add power supply, voltage regulator(s), level
 shifter, termination resistors, and more, as required...
 </p>
-<p>
 <h3>Variant A: Cypress FX2</h3>
 <pre>
 Using Cypress FX2 as USB JTAG Adapter, booted from host PC (no EEPROM)
@@ -199,8 +189,6 @@ Using Cypress FX2 as USB JTAG Adapter, booted from host PC (no EEPROM)
              |_____________|
 
 </pre>
-</p>
-<p>
 <h3>Variant B: FTDI FT245 plus CPLD</h3>
 <pre>
 Using FTDI FT245BM plus EEPROM 93C46 plus CPLD EPM7064
@@ -219,12 +207,11 @@ Using FTDI FT245BM plus EEPROM 93C46 plus CPLD EPM7064
              |_____________|  |_____________|
 
 </pre>
-</p>
 <p>
 Note: The newer FT245R has on-chip EEPROM and oscillator, so the 93C46 and 6 MHz XTAL
 aren't needed anymore. Furthermore it can output 12 MHz on OSCO; it maybe possible
 to use the clock for the EPM7064 (then running at half the original speed).
-</p></p>
+</p><p>
 A working implementation with CPLD can be seen in the upper right of 
 <a href="eb2_usbjtag_eth.jpg">this picture</a>,
 connected to an Altium Live Design Evaluation Board EB2, Cyclone Edition,
@@ -234,7 +221,6 @@ the EB2; to evaluate OpenCores Ethernet MAC in the FPGA. USB has been added
 as a <a href="wired_isp1106.jpg">module with just an USB transceiver</a> and 
 48 MHz oscillator on it, driven by OpenCores.org USB 1.1 function core.
 </p>
-<p>
 <h3>Variant C: SiLabs C8051F32x</h3>
 <pre>
 Using Silicon Laboratories C8051F32x with firmware in integrated flash (unfinished)
@@ -246,7 +232,6 @@ Using Silicon Laboratories C8051F32x with firmware in integrated flash (unfinish
              |____________|
  
 </pre>
-</p>
 <p>
 Variant C isn't finished yet. I first tried to implement it on a C8051F326, after I 
 <a href="wired_f326.jpg">managed to wire up such a chip</a> to a demo board (the "Toolstick-EK"). It
@@ -272,7 +257,7 @@ embedded "cable"). The CPLD doesn't have to be modified.
 While working with it, I also wrote an experimental driver for openwince to
 support the XPCU with original Xilinx firmware and CPLD. That code has now been
 merged into <a href="http://urjtag.org">UrJTAG</a>, therefore there's no
-separate download available here anymore.
+separate download available here anymore.</p>
 
 <h2>JTAG Tracing</h2>
 
@@ -284,18 +269,22 @@ It is able to interpret log files from
 or Linux kernel messages from OpenOCD with libftd2xx or Altera's jtagd and show you
 the actual IR and DR scans.  It does not work yet with libftdi. With kernel
 2.6, you can enable those messages using the command
-<pre>
-  echo 1 > /sys/module/usbcore/parameters/usbfs_snoop
-</pre>
 </p>
+<pre>
+  echo 1 &gt; /sys/module/usbcore/parameters/usbfs_snoop
+</pre>
 
 <h2>Final note</h2>
-</p>
+<p>
 Quartus, SignalTap and USB-Blaster are trademarks of Altera Corporation.
 ChipScope and probably "Platform Cable" are trademarks of Xilinx Inc.  </p>
 
-<p align="right"><img src="/img/feng-ker-ya_trans.gif"/>
-</div>
+<p><b>[<a href="http://ixo-jtag.sourceforge.net/">Back</a>]</b></p>
+
+<p><a href="http://sourceforge.net/projects/ixo-jtag"><img border="0"
+	src="http://sflogo.sourceforge.net/sflogo.php?group_id=287955&amp;type=10" width="80" height="15"
+	alt="Get ixo.de USB JTAG pod at SourceForge.net. Fast, secure and Free Open Source software downloads" /></a></p>
+
 </body>
 </html>
 
