@@ -1,67 +1,83 @@
 #!/usr/bin/perl -w
-# Copyright 2009, Andrew Ross <andy@plausible.org>
-# Distributable under the terms of the GNU GPL licence version 2 or later.
-use strict;
-use POSIX qw(isatty);
-use Time::HiRes qw(usleep);
-use FindBin;
-
 # nexys2prog - program a Digilent Nexys 2 FPGA board over USB
+# Copyright (c) 2009, Andrew Ross <andy@plausible.org>
+# Please see below for license terms (GPL).
+# https://sourceforge.net/projects/ixo-jtag/
 #
 # Usage: nexys2prog [-v|--verbose] <Bitstream File>
 #
 # This script automatically finds an attached Nexys 2 board and loads
 # it with the specified Xilinx bitstream with a minimum of fuss,
-# configuration, and external dependencies.  Specifically, the
+# configuration, and external dependencies. Specifically, the
 # hacked/patched firmware for the Cypress FX2 chip is provided.
 # The user only needs user-level software installed and a single local
 # configuration change (optional, for the USB device files -- the lazy
-# can just run the script as root).
+# can just run the script as root). Please see the file README.txt
+# for additional documentation.
 #
 # Prerequisites:
 #
-# 1. A working Xilinx ISE installation.  This was tested against 10.1 and
+# 1. A working Xilinx ISE installation. This was tested against 10.1 and
 #    11.1, but I believe older versions share the same iMPACT syntax and
 #    BSDL file locations.
 #
 # 2. The "fxload" utility is required to reprogram the board's FX2 USB
 #    chip, available in Debian and Ubuntu via "apt-get install
-#    fxload".  Note that fxload requires write access to the raw USB
+#    fxload". Note that fxload requires write access to the raw USB
 #    device files under /dev/bus/usb, and that these are by default
-#    read-only on Ubuntu Intrepid.  You can either run the script as
+#    read-only on Ubuntu Intrepid. You can either run the script as
 #    root, or else set the files to be owned by the "plugdev" group by
 #    adding the GROUP field to this line in
 #    /etc/udev/rules.d/40-basic-permissions.rules:
 #    SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", MODE="0664", GROUP="plugdev"
 #
-# 3. UrJTAG, available from http://urjtag.org.  UrJTAG is an active
-#    fork of the moribund openwince-jtag project.  Note that
+# 3. UrJTAG, available from http://urjtag.org. UrJTAG is an active
+#    fork of the moribund openwince-jtag project. Note that
 #    openwince-jtag is still an available Debian/Ubuntu package, that
 #    it shares the same "jtag" binary name and most of its syntax, and
-#    that IT DOES NOT WORK with the firmware in this script.  You need
-#    to install UrJTAG.  Also note that you will need libftdi
+#    that IT DOES NOT WORK with the firmware in this script. You need
+#    to install UrJTAG. Also note that you will need libftdi
 #    installed for the protocol handler, again available on
-#    Debian/Ubuntu via "apt-get install libftdi1".  UrJTAG will build
+#    Debian/Ubuntu via "apt-get install libftdi1". UrJTAG will build
 #    without this, but you won't be able to program the Nexys 2
 #    without libftdi.
 #
 # Note that this script comes with a binary firmware blob built from
-# free software sources.  See the note above it for source
-# information.
-
-
+# free software sources. See the file README.txt for more information.
+#
 # TODO:
 # + Figure out the JTAG interface for the boot PROM, so it can be
 #   flashed with the bitstream instead of (or in addition to) doing a
 #   direct load to the FPGA.
 # + Pull down and parse the JTAG chain from the device to verify that
 #   it's actually a Nexys 2 and not another device sharing the same
-#   firmware family and bus ID.  Kolja's firmware runs on other
+#   firmware family and bus ID. Kolja's firmware runs on other
 #   devices too...
 # + Extend the script to recognize arbitrary JTAG chains and find the
-#   appropriate part number automatically.  So you'd just specify a
+#   appropriate part number automatically. So you'd just specify a
 #   .bit file (which contains the FPGA type) and it would crawl the
 #   JTAG bus looking for a matching FPGA to program.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program as the file COPYING.txt; if not, write to the Free
+# Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+# MA 02110-1301 USA.
+#
+use warnings;
+use strict;
+use POSIX qw(isatty);
+use Time::HiRes qw(usleep);
+use FindBin;
 
 my $USBID_KOLJA = "16c0:06ad";
 my $USBID_DIGILENT = "1443:0005";
@@ -173,7 +189,7 @@ sub find_xilinx {
     vlog("Located Xilinx ISE installation in $XILINX.\n");
 }
 
-# Run an external tool, emitting the output only if it fails.  iMPACT
+# Run an external tool, emitting the output only if it fails. iMPACT
 # and UrJTAG are annoyingly verbose...
 sub run {
     my $cmd = shift;
@@ -206,7 +222,7 @@ sub find_nexys2 {
 # firmware, patched to support the Nexys 2 pin assignments and FPGA
 # bitstream sizes as per Morgan Delahaye's instructions at
 # http://m-del.net/info.html. Uses the fxload tool from the
-# linux-hotplug project.  The end result is an interface compatible
+# linux-hotplug project. The end result is an interface compatible
 # with the FTDI-based Altera USBBlaster product.
 sub blasterize {
     my ($bus, $dev) = @_;

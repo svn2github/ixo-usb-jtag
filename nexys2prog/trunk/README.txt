@@ -1,3 +1,33 @@
+
+nexys2prog - program a Digilent Nexys 2 FPGA board over USB
+Copyright (c) 2009, Andrew Ross <andy@plausible.org>
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along
+with this program as the file COPYING.txt; if not, write to the Free
+Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301 USA.
+
+News
+====
+
+- May 2010: Imported into the SourceForge project ixo-jtag by Hauke Daempfling
+  https://sourceforge.net/projects/ixo-jtag/
+  I've updated the script with the latest version of the Cypress FX2 firmware,
+  and updated the documentation a tiny bit. The original documentation
+  follows. Note that some of the links no longer work, but the general idea is
+  still the same. Also, note that the described fixes to the firmware have
+  since been applied to the main source tree hosted at the SF project above.
+
 nexys2prog
 ==========
 
