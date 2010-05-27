@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>ixo.de USB JTAG pod - How-To: Digilent Nexys(2) on Linux</title>
+	<link rel="stylesheet" type="text/css" href="ixo-jtag.css" />
+</head>
+<body>
+<h1>How-To: Digilent Nexys(2) on Linux</h1>
+
+<p><small><i>Copyright &copy; 2010 <a href="http://www.zero-g.net/">Hauke D&auml;mpfling</a>
+(Last Update: $Date$)</i><br/>
+<i>Permission is granted to copy, distribute and/or modify this document
+under the terms of the <a href="fdl.html">GNU Free Documentation License, Version 1.3</a>
+(<a href="http://www.gnu.org/licenses/fdl-1.3.html">alternate hyperlink</a>)
+or any later version published by the Free Software Foundation.</i><br/>
+Any comments, suggestions, etc. greatly appreciated!
+<b>I can only provide very limited support.</b>
+See the <a href="http://sourceforge.net/projects/ixo-jtag">SourceForge project page</a>.
+</small></p>
+
+<table cellpadding="4" cellspacing="0" border="1">
+<tr>
+	<td><b>A</b></td>
+	<td><b>Preparation</b></td>
+	<td><small>Tested on Ubuntu 9.10, but should work on any Debian-based system and can be adapted to most Linux distros.<br/>
+		The firmware was tested with a Digilent <a href="http://www.digilentinc.com/nexys2">Nexys2</a> board,
+		and should work the same with a <a href="http://www.digilentinc.com/nexys">Nexys(1)</a>.<br/>
+		The following instructions are very similar to, but currently more complete than, the nexys2prog instructions,
+		see <a href="http://ixo-jtag.svn.sourceforge.net/viewvc/ixo-jtag/nexys2prog/trunk/README.txt?view=markup">here</a>
+		and <a href="http://ixo-jtag.svn.sourceforge.net/viewvc/ixo-jtag/nexys2prog/trunk/nexys2prog?view=markup">here</a>.</small></td>
+</tr>
+<tr>
+	<td>1</td>
+	<td nowrap="nowrap"><a href="#xilinx_ise">Install Xilinx ISE</a></td>
+	<td><small>&nbsp;</small></td>
+</tr>
+<tr>
+	<td>2</td>
+	<td nowrap="nowrap"><code>sudo apt-get install fxload libftdi1</code></td>
+	<td><small>These packages should also be available for other distros, such as SuSE.</small></td>
+</tr>
+<tr>
+	<td>3</td>
+	<td nowrap="nowrap"><code>sudo apt-get remove openwince-jtag</code></td>
+	<td><small>This package conflicts with the UrJTAG tools that we will install in the next step,
+			and development has been discontinued in favor of UrJTAG anyway.</small></td>
+</tr>
+<tr>
+	<td>4</td>
+	<td nowrap="nowrap">
+		<a href="http://urjtag.org/">Download UrJTAG</a> (<code>.tar.gz</code>)<br/>
+		<code>tar xzf urjtag-<i>VERSION</i>.tar.gz</code><br/>
+		<code>cd urjtag-<i>VERSION</i></code><br/>
+		<code>./configure</code><br/>
+		<code>make</code><br/>
+		<code>sudo make install</code>
+	</td>
+	<td><small>Tested with UrJTAG 0.10. There is also a "<code>urjtag</code>" package in the Ubuntu repositories,
+		but as far as I can tell it's not current. Do a "<code>sudo apt-get remove urjtag</code>" to make sure you don't have it installed.<br/>
+		If you don't have a full build environment:
+		"<code>sudo apt-get install build-essential automake autoconf libtool</code>"
+		and take a look at the "Compilation and Installation" section of the
+		<a href="http://www.urjtag.org/book/">UrJTAG Documentation</a>.<br/>
+		UrJTAG installs to <code>/usr/local</code> by default.</small></td>
+</tr>
+<tr>
+	<td>5</td>
+	<td nowrap="nowrap">You may need write access to<br/>
+		the files in <code>/dev/bus/usb</code></td>
+	<td><small>
+		<b>Method 1:</b> Run the <code>nexys2prog</code> script with <code>sudo</code>.<br/>
+		<b>Method 2:</b> Add "<code>, GROUP="plugdev"</code>"
+			to the line "<code>SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", MODE="0664"</code>"
+			in the file <code>/etc/udev/rules.d/40-basic-permissions.rules</code>
+			(note the comma before <code>GROUP</code>.
+			You may need to create the file if it doesn't exist, or add the entire line if it doesn't exist.<br/>
+			If you happen have <a href="http://www.virtualbox.org/">VirtualBox</a> installed,
+			the group <code>vboxusers</code> will actually already have this permission via <code>/etc/udev/rules.d/10-vboxdrv.rules</code>.
+			The same might be true for other software packages, so you should probably check the files in <code>/etc/udev/rules.d/</code> first.
+	</small></td>
+</tr>
+<tr>
+	<td>6</td>
+	<td nowrap="nowrap"><code>svn co <a href="https://ixo-jtag.svn.sourceforge.net/svnroot/ixo-jtag/nexys2prog/trunk">https://ixo-jtag.svn.sourceforge.net</a>\<br/><a href="https://ixo-jtag.svn.sourceforge.net/svnroot/ixo-jtag/nexys2prog/trunk">/svnroot/ixo-jtag/nexys2prog/trunk</a> nexys2prog</code><br/>
+		<code>cd nexys2prog</code></td>
+	<td><small><!-- note to self: keep in sync with corresponding step of usb_jtag below -->
+		This will get the latest version of nexys2prog.
+		If you want to stay up-to-date, run "<code>svn up</code>" in the <code>nexys2prog</code> directory to check for new versions.<br/>
+		If you don't have the <code>svn</code> command (Subversion) installed, do "<code>sudo apt-get install subversion</code>".<br/>
+		The nexys2prog distribution includes a pre-built version of the Cypress FX2 firmware as the file <code>usb_jtag.hex</code>.
+		If you would like to customize the firmware and/or re-build it from source, see <a href="#fx2fw">the section on this below</a>.<br/>
+		<i><b>Note:</b></i> To save space I've wrapped the URL on the left over two lines, you should still be able to copy &amp; paste this
+		into a shell as-is. If you have any problems, join the two lines and make sure to remove the backslash (<code>\</code>) from the
+		end of the first line. Or, use your browser to copy the hyperlink on the left.
+	</small></td>
+</tr>
+<tr>
+	<td><b>B</b></td>
+	<td><b>Programming the Board</b></td>
+	<td><small>&nbsp;</small></td>
+</tr>
+<tr>
+	<td>7</td>
+	<td nowrap="nowrap">Generate a Xilinx <code>.bit</code> file</td>
+	<td><small>
+		<b>Method 1:</b> Use the Xilinx ISE IDE.<br/>
+		<b>Method 2:</b> Take a look at the provided <code>build.sh</code> script as an example of how to use the command line.
+	</small></td>
+</tr>
+<tr>
+	<td>8</td>
+	<td nowrap="nowrap">Connect &amp; power up your<br/>Nexys(2) board.</td>
+	<td><small>&nbsp;</small></td>
+</tr>
+<tr>
+	<td>9</td>
+	<td nowrap="nowrap"><code>./nexys2prog <i>FILENAME</i>.bit</code></td>
+	<td><small>This will program the custom firmware on the Cypress FX2 chip if necessary, and then program the FPGA with the bitstream.<br/>
+			Note that both processes are <b>not permanent</b>, both the FPGA and the FX2 chip will load their original, unaltered firmware
+			if you cycle the power (remember that you'll have to unplug the USB cable to cycle the FX2's power).</small></td>
+</tr>
+</table>
+
+<h2><a name="xilinx_ise"></a>Xilinx ISE (free WebPack)</h2>
+
+<table cellpadding="4" cellspacing="0" border="1">
+<tr>
+	<td><b>&nbsp;</b></td>
+	<td><b>Installation</b></td>
+	<td><small>Tested with Xilinx ISE 11.1 on Ubuntu 9.10, but it should work on any
+		Linux distro that's supported by Xilinx.</small></td>
+</tr>
+<tr>
+	<td>1</td>
+	<td nowrap="nowrap"><code>sudo apt-get install libstdc++5 libmotif3 libxp6 libcurl3</code></td>
+	<td><small>These are the requirements as documented in the Xilinx installation instructions.</small></td>
+</tr>
+<tr>
+	<td>2</td>
+	<td nowrap="nowrap">Download the <a href="http://www.xilinx.com/webpack/">free "WebPack"</a>,
+		single-file version</td>
+	<td><small>A quick and fairly painless registration with Xilinx is required.<br/>
+			This is a <i>huge</i> download, a few GB if I remember correctly! Make sure you've got some time...<br/>
+			There is also a "Web Install Client", but that was much slower for me,
+			and if you use it, the following procedure will be different.</small></td>
+</tr>
+<tr>
+	<td>3</td>
+	<td nowrap="nowrap">
+		<code>tar xf <i>FILENAME</i>.tar</code><br/>
+		<code>cd <i>NEWDIRECTORY</i></code><br/>
+		<code>sudo ./xsetup</code>
+	</td>
+	<td><small>Here, "<code><i>NEWDIRECTORY</i></code>" is there directory that was created by unpacking the <code>tar</code> file.<br/>
+		The <code>sudo</code> is required to be able to install to the default location of <code>/opt/Xilinx/<i>VERSION</i></code>,<br/>
+		if you want to install somewhere else, such as your home directory, the <code>sudo</code> may not be required (I'm not sure).</small></td>
+</tr>
+<tr>
+	<td>4</td>
+	<td nowrap="nowrap">Run the installer - see notes</td>
+	<td><small>
+		The installer should be pretty self-explanatory, but please note the following:<br/>
+		If the installer asks whether you want to update, I suggest not running the update program and instead downloading and installing the updates
+		manually, as this goes faster for me - this is described in the next step.<br/>
+		The installer may complain about about there being no space left on the disk (0 bytes), you can safely ignore this (assuming of
+		course you do have enough space left on your disk).<br/>
+		If you ran <code>xsetup</code> with <code>sudo</code>, and the installer launches a browser, this can cause some files (the browser's
+		settings files) in your home directory to change ownership to <code>root</code>, this can cause problems the next time you use your
+		browser. If this happens, you'll need to change these permissions back ("<code>chown -Rc <i>USER</i>:<i>GROUP</i> <i>PATHs</i></code>").
+	</small></td>
+</tr>
+<tr>
+	<td>5</td>
+	<td nowrap="nowrap">
+		Download any <a href="http://download.xilinx.com/#updates">updates</a>, per Update do:<br/>
+		<code>tar xf <i>FILENAME</i>.tar</code><br/>
+		<code>cd <i>NEWDIRECTORY</i></code><br/>
+		<code>sudo ./xsetup</code>
+	</td>
+	<td><small>The installation of updates is very similar to the installation of the WebPack, see above.</small></td>
+</tr>
+<tr>
+	<td>6</td>
+	<td nowrap="nowrap">Set up the environment - see notes</td>
+	<td><small>
+		Depending on your platform, you'll need to run either <code>settings32.sh</code>, <code>settings32.csh</code>,
+		<code>settings64.sh</code>, or <code>settings64.csh</code> to set up environment variables
+		(for details, see the installation documentation, there is a link to it from the WebPack download page).<br/>
+		Or, the following bash script starts Xilinx ISE, just set <code>XILINX_DIR</code> to the appropriate
+		path and change the <code>settings32.sh</code> script name to the one appropriate to your platform:<br/>
+		<code>
+		#!/bin/bash<br/>
+		XILINX_DIR=/opt/Xilinx/11.1<br/>
+		source $XILINX_DIR/settings32.sh<br/>
+		$XILINX_DIR/ISE/bin/lin/ise
+		</code>
+	</small></td>
+</tr>
+</table>
+
+<h2><a name="fx2fw"></a>Building the Cypress FX2 Firmware</h2>
+
+<table cellpadding="4" cellspacing="0" border="1">
+<tr>
+	<td><b>A</b></td>
+	<td><b>Preparation</b></td>
+	<td><small>Tested on Ubuntu 9.10, but should work with any Linux distribution that supports <a href="http://sdcc.sourceforge.net/">SDCC</a>.</small></td>
+</tr>
+<tr>
+	<td>1</td>
+	<td nowrap="nowrap"><code>sudo apt-get install sdcc</code></td>
+	<td><small>If you happen to be using a version of Ubuntu before 9.10, you'll need to
+		install <code>sdcc-nf</code> instead of <code>sdcc</code>.</small></td>
+</tr>
+<tr>
+	<td>2</td>
+	<td nowrap="nowrap"><code>svn co <a href="https://ixo-jtag.svn.sourceforge.net/svnroot/ixo-jtag/usb_jtag/trunk">https://ixo-jtag.svn.sourceforge.net</a>\<br/><a href="https://ixo-jtag.svn.sourceforge.net/svnroot/ixo-jtag/usb_jtag/trunk">/svnroot/ixo-jtag/usb_jtag/trunk</a> usb_jtag</code><br/>
+		<code>cd usb_jtag/device/c51/</code></td>
+	<td><small><!-- note to self: mostly copied from corresponding step of nexys2prog above -->
+		This will get the latest version of the firmware.
+		If you want to stay up-to-date, run "<code>svn up</code>" in the <code>usb_jtag</code> directory to check for new versions.<br/>
+		If you don't have the <code>svn</code> command (Subversion) installed, do "<code>sudo apt-get install subversion</code>".<br/>
+		<i><b>Note:</b></i> To save space I've wrapped the URL on the left over two lines, you should still be able to copy &amp; paste this
+		into a shell as-is. If you have any problems, join the two lines and make sure to remove the backslash (<code>\</code>) from the
+		end of the first line. Or, use your browser to copy the hyperlink on the left.
+	</small></td>
+</tr>
+<tr>
+	<td>3</td>
+	<td nowrap="nowrap">
+		Edit <code>Makefile</code> and change<br/>
+		"<code>HARDWARE=hw_basic</code>"<br/>
+		to "<code>HARDWARE=hw_nexys</code>"
+	</td>
+	<td><small>See the <code>README.txt</code> for more information.</small></td>
+</tr>
+<tr>
+	<td><b>B</b></td>
+	<td><b>Compilation</b></td>
+	<td><small>&nbsp;</small></td>
+</tr>
+<tr>
+	<td>4</td>
+	<td nowrap="nowrap"><code>make</code></td>
+	<td><small>This will build the firmware as <b><code>std.hex</code></b>.<br/>
+		If you want to use <code>nexys2prog</code>, replace the <code>usb_jtag.hex</code> file with the one you just built.</small></td>
+</tr>
+</table>
+
+<p><a href="index.html">Back</a></p>
+
+<p><a href="http://sourceforge.net/projects/ixo-jtag"><img border="0"
+	src="http://sflogo.sourceforge.net/sflogo.php?group_id=287955&amp;type=10" width="80" height="15"
+	alt="Get ixo.de USB JTAG pod at SourceForge.net. Fast, secure and Free Open Source software downloads" /></a></p>
+
+</body>
+</html>
+

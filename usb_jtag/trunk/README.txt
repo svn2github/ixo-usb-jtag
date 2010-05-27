@@ -30,10 +30,11 @@ NEWS:
   mostly just imported this usb_jtag project into the SVN repository, applied a
   few small patches, made a few minor updates, and did some general cleanup.
   IMPORTANT: Since I only have a Nexys2 FPGA board, I can currently only vouch
-  for the firmware in the device/c51/ directory, all the other stuff might be
-  in various states of decay - if you are using any of these things in
-  production, please let me know so I can update this notice. Also, patches
-  are *always* welcome :)
+  for the firmware in the device/c51/ directory, and I have heard that this
+  firmware also works on the Nexys(1), and that the device/cpld/ directory
+  should still be current. All the other stuff might be in various states of
+  decay - if you are using any of these things in production, please let me
+  know so I can update this notice. Also, patches are *always* welcome :)
 
 -----------------------------------------------------------------------------
 
@@ -60,11 +61,15 @@ FILES: Beside this README, this archive contains the following files:
 
  - copying.txt: The text of the GNU Public License (GPL).
  - device/c51: Firmware for usb_jtag based on Cypress FX2, for SDCC compiler
- - device/fx2.old: Alternative, now old and unsupported FX2 firmware, for Keil compiler
+ - device/fx2.old: Alternative, now old and unsupported FX2 firmware, for Keil
+   compiler
  - device/cpld: CPLD logic for usb_jtag with FT245BM + CPLD
+ - device/f32x: (currently unfinished) attempt to get the firmware running on
+   SiLabs F32x USB controller
  - host/eecksum: Code to compute a valid checksum for FT245BM EEPROM emulation
  - host/devtest: Small utility to do some basic tests with usb_jtag adapter
  - host/openocd: Experimental usb_jtag/USB-Blaster driver for OpenOCD
+ - host/fxpush: Utility to upload HEX file to FX2/FX target using libusb
 
 Where appropriate, the directories contain a file "README.txt" with further
 information about purpose, usage and history.

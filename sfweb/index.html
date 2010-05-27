@@ -10,16 +10,56 @@
 <body>
 <h1>ixo.de USB JTAG pod</h1>
 
-<p>Working on the documentation at the moment.</p>
+<p><big>This project currently hosts two tools (sub-projects):
+<a href="#usb_jtag"><b>usb_jtag</b></a> and
+<a href="#nexys2prog"><b>nexys2prog</b></a>.</big></p>
 
-<p><a href="ixo_de_usb_jtag.html">Original project page</a></p>
+<p>Sources and more documentation for both can be found below and in the SVN repository, see the
+<a href="http://sourceforge.net/projects/ixo-jtag">SourceForge project page</a> for the latter.</p>
 
-<p><a href="http://sourceforge.net/projects/ixo-jtag">SourceForge project page</a></p>
+<h2><a name="usb_jtag"></a>usb_jtag - USB JTAG Adapter Firmware</h2>
 
+<p>
+This firmware allows a USB-capable microcontroller - currently that's primarily the
+<a href="http://www.cypress.com/?id=193">Cypress FX2 EZ-USB family</a>,
+or an <a href="http://www.ftdichip.com/Products/FT245BM.htm">FTDI FT245</a> in combination with a CPLD - to act like an
+<a href="http://www.altera.com/products/devkits/kit-cables.html?GSA_pos=1&amp;WT.oss_r=1&amp;WT.oss=blaster">Altera USB-Blaster JTAG pod</a>,
+which in turn may allow you to use tools you'd normally use with the Altera USB-Blaster, including available Linux tools
+such as <a href="http://www.urjtag.org/">UrJTAG</a>.
+</p>
+
+<ul>
+	<li><a href="archive/ixo_de_usb_jtag.html">Original project page</a> (archived here from <a href="http://www.ixo.de/info/usb_jtag/">ixo.de</a>)</li>
+	<li><a href="http://ixo-jtag.svn.sourceforge.net/viewvc/ixo-jtag/usb_jtag/trunk/README.txt?view=markup">Main README</a> (general information)</li>
+	<li><a href="http://ixo-jtag.svn.sourceforge.net/viewvc/ixo-jtag/usb_jtag/trunk/device/c51/README.txt?view=markup">Cypress FX2 firmware README</a></li>
+	<li><a href="http://ixo-jtag.svn.sourceforge.net/viewvc/ixo-jtag/usb_jtag/trunk/device/cpld/README.txt?view=markup">FT245 + CPLD README</a></li>
+	<li>The "Nexys(2) on Linux" How-To includes a section on <a href="nexys2-linux-howto.html#fx2fw">building the Cypress FX2 firmware</a></li>
+	<li><a href="http://ixo-jtag.svn.sourceforge.net/viewvc/ixo-jtag/usb_jtag/trunk/">Browse the Sources</a></li>
+	<li><a href="#nexys2prog">nexys2prog</a> (below), a tool for easily writing this firmware to the Digilent Nexys(2) boards and programming FPGAs</li>
+</ul>
+
+<h2><a name="nexys2prog"></a>nexys2prog - Easy programming of Digilent's Nexys(2)</h2>
+
+<p>
+This Perl script greatly simplifies the programming of a
+<a href="http://www.digilentinc.com/nexys">Digilent Nexys</a>/<a href="http://www.digilentinc.com/nexys2">Nexys2</a> board under Linux.
+It is well documented, see the links below.
+</p>
+
+<ul>
+	<li><a href="http://ixo-jtag.svn.sourceforge.net/viewvc/ixo-jtag/nexys2prog/trunk/README.txt?view=markup">Main README</a></li>
+	<li><a href="http://ixo-jtag.svn.sourceforge.net/viewvc/ixo-jtag/nexys2prog/trunk/nexys2prog?view=markup">The script</a>, comments at the top of the file
+	provide more useful information</li>
+	<li><a href="nexys2-linux-howto.html">A How-To</a> on building the FX2 firmware, installing Xilinx ISE (free WebPack) and using nexys2prog</li>
+	<li><a href="http://ixo-jtag.svn.sourceforge.net/viewvc/ixo-jtag/nexys2prog/trunk/">Browse the Sources</a></li>
+</ul>
+
+<hr />
+<small><i>Last page update: $Date$</i></small><br/>
 <p><a href="http://sourceforge.net/projects/ixo-jtag"><img border="0"
-	src="http://sflogo.sourceforge.net/sflogo.php?group_id=287955&amp;type=16" width="150" height="40"
-	alt="Get ixo.de USB JTAG pod at SourceForge.net. Fast, secure and Free Open Source software downloads" /></a></p>
+	src="http://sflogo.sourceforge.net/sflogo.php?group_id=287955&amp;type=10" width="80" height="15"
+	alt="Get ixo.de USB JTAG pod at SourceForge.net. Fast, secure and Free Open Source software downloads" /></a>
+</p>
 
 </body>
 </html>
-

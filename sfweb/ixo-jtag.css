@@ -2,9 +2,6 @@
 body,td {
 	font-family: Tahoma, Arial, Helvetica, sans-serif;
 }
-p,ol,ul {
-	font-size: 10pt;
-}
 
 a { text-decoration:none; }
 a:link { color:#0000FF; }
