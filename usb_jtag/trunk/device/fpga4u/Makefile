@@ -30,6 +30,8 @@ endif
 CC=sdcc
 CFLAGS+=-mmcs51 --no-xinit-opt -I${LIBDIR} -D${HARDWARE}
 
+CFLAGS+=--opt-code-size
+
 AS=asx8051
 ASFLAGS+=-plosgff
 
@@ -44,19 +46,25 @@ LDFLAGS+=-L ${LIBDIR}
 %.rel : %.c
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
 
-default: std.hex
+default: usbjtag.iic
 
-std.hex: vectors.rel usbjtag.rel dscr.rel eeprom.rel ${HARDWARE}.rel startup.rel ${LIBDIR}/${LIB}
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $+ 
+%.iic : %.hex
+	./hex2bix -ir -f 0xC2 -m 0xF000 -c 0x1 -o $@ $<
+
+usbjtag.hex: vectors.rel usbjtag.rel dscr.rel eeprom.rel ${HARDWARE}.rel startup.rel ${LIBDIR}/${LIB}
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $+
+	packihx $@ > .tmp.hex
+	rm $@
+	mv .tmp.hex $@
 
 ${LIBDIR}/${LIB}:
 	make -C ${LIBDIR}
 
 .PHONY: boot
-boot: std.hex
-	-test -e /dev/usb_jtag    && /sbin/fxload -D /dev/usb_jtag    -I std.hex -t fx2
-	-test -e /dev/tracii_xl2  && /sbin/fxload -D /dev/tracii_xl2  -I std.hex -t fx2
-	-test -e /dev/xilinx_xpcu && /sbin/fxload -D /dev/xilinx_xpcu -I std.hex -t fx2
+boot: usbjtag.hex
+	-test -e /dev/usb_jtag    && /sbin/fxload -D /dev/usb_jtag    -I usbjtag.hex -t fx2
+	-test -e /dev/tracii_xl2  && /sbin/fxload -D /dev/tracii_xl2  -I usbjtag.hex -t fx2
+	-test -e /dev/xilinx_xpcu && /sbin/fxload -D /dev/xilinx_xpcu -I usbjtag.hex -t fx2
 
 REF=/home/kawk/work/xilinx/xtern/xusbdfwu/xusbdfwu-1025.hex
 
@@ -75,7 +83,7 @@ ${HARDWARE}.rel: ${HARDWARE}.c hardware.h
 
 clean:
 	make -C ${LIBDIR} clean
-	rm -f *.lst *.asm *.lib *.sym *.rel *.mem *.map *.rst *.lnk *.hex
+	rm -f *.lst *.asm *.lib *.sym *.rel *.mem *.map *.rst *.lnk *.hex *.ihx *.iic
 
 distclean: clean
 

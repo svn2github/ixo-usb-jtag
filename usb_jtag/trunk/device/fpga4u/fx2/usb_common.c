@@ -51,12 +51,16 @@ setup_descriptors (void)
     current_devqual_descr = high_speed_devqual_descr;
     current_config_descr  = high_speed_config_descr;
     other_config_descr    = full_speed_config_descr;
+	EP8AUTOINLENH = 0x02; SYNCDELAY;				// Size in bytes of the IN data automatically commited (512 bytes here)
+	EP8AUTOINLENL = 0x00; SYNCDELAY;				// Can use signal PKTEND if you want to commit a shorter packet
   }
   else {
     current_device_descr  = full_speed_device_descr;
     current_devqual_descr = full_speed_devqual_descr;
     current_config_descr  = full_speed_config_descr;
     other_config_descr    = high_speed_config_descr;
+	EP8AUTOINLENH = 0x00; SYNCDELAY;				// Size in bytes of the IN data automatically commited (64 bytes here)
+	EP8AUTOINLENL = 0x40; SYNCDELAY;				// Can use signal PKTEND if you want to commit a shorter packet
   }
 
   // whack the type fields
@@ -284,6 +288,7 @@ usb_handle_setup_packet (void)
       switch (bRequest){
 
       case RQ_SET_CONFIG:
+	IOE &= ~(1 << 6);
 	_usb_config = wValueL;		// FIXME app should handle
 	break;
 

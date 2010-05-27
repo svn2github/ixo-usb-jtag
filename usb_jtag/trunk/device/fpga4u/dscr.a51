@@ -4,6 +4,7 @@
 ;;; USB Descriptor(s)
 ;;;-----------------------------------------------------------------------------
 ;;; Copyright 2005..2007 Kolja Waschk, ixo.de
+;;; Modified by LAP for FPGA4U project, Jan 2007. lap.epfl.ch
 ;;;-----------------------------------------------------------------------------
 ;;; Code based on USRP2 firmware (GNU Radio Project), version 3.0.2,
 ;;; Copyright 2003 Free Software Foundation, Inc.
@@ -28,7 +29,7 @@
         USB_VER          = 0x0110         ; Support USB version 1.10 
         USB_ATTR         = 0x80           ; Bus powered, not self-powered, no remote wakeup
         FTD_ATTR         = 0x001C         ; Set USB version, use version string, enable suspend PD
-        MAX_POWER        = 75             ; need 2*75 mA max
+        MAX_POWER        = 250             ; need 2*250 mA max
 
         DSCR_DEVICE      =   1        ; Descriptor type: Device
         DSCR_CONFIG      =   2        ; Descriptor type: Configuration
@@ -53,7 +54,11 @@
 ;;;--------------------------------------------------------
         
         .area USBDESCSEG    (XDATA)
-       
+        
+;;; ----------------------------------------------------------------
+;;; descriptors used when operating at high speed (480Mb/sec)
+;;; ----------------------------------------------------------------
+        
         .even        ; descriptors must be 2-byte aligned for SUDPTR{H,L} to work
 
         ;; The .even directive isn't really honored by the linker.  Bummer!
@@ -61,12 +66,11 @@
         ;; hence when they're concatenated together, even doesn't work.)
         ;; 
         ;; We work around this by telling the linker to put USBDESCSEG
-        ;; at absolute address 0xE100 (see LDFLAGS in Makefile).
-
-;;; ----------------------------------------------------------------
-;;; descriptors used when operating at high speed (480Mb/sec)
-;;; ----------------------------------------------------------------
-         
+        ;; at 0xE000 absolute.  This means that the maximimum length of this
+        ;; segment is 480 bytes, leaving room for the two hash slots 
+        ;; at 0xE1EO to 0xE1FF.  
+        ;; Note from LAP: TODOOOOO
+        
 _high_speed_device_descr::
         .db        DSCR_DEVICE_LEN
         .db        DSCR_DEVICE
@@ -109,7 +113,7 @@ _high_speed_config_descr::
         .db        DSCR_CONFIG
         .db        <(_high_speed_config_descr_end - _high_speed_config_descr) ; LSB
         .db        >(_high_speed_config_descr_end - _high_speed_config_descr) ; MSB
-        .db        1                ; bNumInterfaces
+        .db        2                ; bNumInterfaces
         .db        1                ; bConfigurationValue
         .db        0                ; iConfiguration
 _dscr_attrpow::
@@ -150,7 +154,38 @@ _dscr_attrpow::
         .db        >64              ; wMaxPacketSize (MSB)
         .db        0                ; bInterval (iso only)
 
-_high_speed_config_descr_end:                
+        ;; interface descriptor
+        
+        .db        DSCR_INTRFC_LEN
+        .db        DSCR_INTRFC
+        .db        1                ; bInterfaceNumber (zero based)
+        .db        0                ; bAlternateSetting
+        .db        2                ; bNumEndpoints
+        .db        0xFF             ; bInterfaceClass (vendor specific)
+        .db        0xFF             ; bInterfaceSubClass (vendor specific)
+        .db        0xFF             ; bInterfaceProtocol (vendor specific)
+        .db        SI_PRODUCT       ; iInterface (description)
+        
+		;; Endpoint Descriptor 2
+		
+		.db   DSCR_ENDPNT_LEN		; Descriptor length
+		.db   DSCR_ENDPNT			; Descriptor type
+		.db   0x06					; Endpoint number and direction
+		.db   ET_BULK				; Endpoint type
+		.db   0x00					; Maximum packet size (LSB)
+		.db   0x02					; Max packect size (MSB)
+		.db   0x00					; Polling interval
+
+		;; Endpoint Descriptor 2
+		.db   DSCR_ENDPNT_LEN		; Descriptor length
+		.db   DSCR_ENDPNT			; Descriptor type
+		.db   0x88					; Endpoint number, and direction
+		.db   ET_BULK				; Endpoint type
+		.db   0x00					; Maximum packet size (LSB)
+		.db   0x02					; Max packect size (MSB)
+		.db   0x00					; Polling interval
+        
+_high_speed_config_descr_end:                   
 
 ;;; ----------------------------------------------------------------
 ;;; descriptors used when operating at full speed (12Mb/sec)
@@ -197,7 +232,7 @@ _full_speed_config_descr::
         .db        DSCR_CONFIG
         .db        <(_full_speed_config_descr_end - _full_speed_config_descr) ; LSB
         .db        >(_full_speed_config_descr_end - _full_speed_config_descr) ; MSB
-        .db        1                ; bNumInterfaces
+        .db        2                ; bNumInterfaces
         .db        1                ; bConfigurationValue
         .db        0                ; iConfiguration
         .db        USB_ATTR         ; bmAttributes
@@ -229,11 +264,44 @@ _full_speed_config_descr::
 
         .db        DSCR_ENDPNT_LEN
         .db        DSCR_ENDPNT
-        .db        0x02             ; bEndpointAddress (ep 1 IN)
+        .db        0x02             ; bEndpointAddress (ep 2 OUT)
         .db        ET_BULK          ; bmAttributes
         .db        <64              ; wMaxPacketSize (LSB)
         .db        >64              ; wMaxPacketSize (MSB)
+        .db        0                ; bInterval (iso only)  
+
+        ;; interface descriptor
+        
+        .db        DSCR_INTRFC_LEN
+        .db        DSCR_INTRFC
+        .db        1                ; bInterfaceNumber (zero based)
+        .db        0                ; bAlternateSetting
+        .db        2                ; bNumEndpoints
+        .db        0xFF             ; bInterfaceClass (vendor specific)
+        .db        0xFF             ; bInterfaceSubClass (vendor specific)
+        .db        0xFF             ; bInterfaceProtocol (vendor specific)
+        .db        SI_PRODUCT       ; iInterface (description)
+
+        ;; endpoint descriptor
+
+        .db        DSCR_ENDPNT_LEN
+        .db        DSCR_ENDPNT
+        .db        0x06             ; bEndpointAddress (ep 6 OUT)
+        .db        ET_BULK          ; bmAttributes
+        .db        0x40             ; wMaxPacketSize (LSB)
+        .db        0x00             ; wMaxPacketSize (MSB)
         .db        0                ; bInterval (iso only)
+
+        ;; endpoint descriptor
+
+        .db        DSCR_ENDPNT_LEN
+        .db        DSCR_ENDPNT
+        .db        0x88             ; bEndpointAddress (ep 8 IN)
+        .db        ET_BULK          ; bmAttributes
+        .db        0x40             ; wMaxPacketSize (LSB)
+        .db        0x00             ; wMaxPacketSize (MSB)
+        .db        0                ; bInterval (iso only)  
+    
         
 _full_speed_config_descr_end:        
         
@@ -268,12 +336,10 @@ str0_end:
 _str1::
 str1:   .db        str1_end - str1
         .db        DSCR_STRING
-        .db        'i, 0            ; 16-bit unicode
-        .db        'x, 0
-        .db        'o, 0
-        .db        '., 0
-        .db        'd, 0
-        .db        'e, 0
+        .db        'E, 0            ; 16-bit unicode
+        .db        'P, 0
+        .db        'F, 0
+        .db        'L, 0
 str1_end:
 
         SI_PRODUCT = 2

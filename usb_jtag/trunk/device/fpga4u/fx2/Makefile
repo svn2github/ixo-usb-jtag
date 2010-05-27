@@ -18,15 +18,14 @@
 CC=sdcc
 CFLAGS+=-mmcs51 --no-xinit-opt -I.
 CPPFLAGS+=
-OBJS=delay.rel fx2utils.rel i2c.rel isr.rel timer.rel usb_common.rel
-AR=sdcclib
 
-(%.rel) : %.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $*.rel
-	$(AR) -a $@ $*.rel
-	rm $*.rel
+%.rel : %.c
+	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
 
-libfx2.lib: libfx2.lib($(OBJS))
+libfx2.lib: delay.rel fx2utils.rel i2c.rel isr.rel timer.rel usb_common.rel
+	rm -f $@
+	touch $@
+	for obj in $^ ; do basename $$obj .rel >> $@ ; done
 
 clean:
 	rm -f *.lst *.asm *.lib *.sym *.rel *.lib

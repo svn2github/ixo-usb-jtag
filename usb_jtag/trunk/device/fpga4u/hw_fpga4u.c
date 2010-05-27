@@ -28,7 +28,7 @@
 #define HAVE_OE_LED  1
 
 // comment in (define!) if you want outputs disabled when possible
-#define HAVE_OENABLE 1
+//#define HAVE_OENABLE 1
 
 //-----------------------------------------------------------------------------
 
@@ -55,6 +55,10 @@ sbit at 0xA3          TMS; /* Port C.3 */
 sbit at 0xA1          TDO; /* Port C.1 */
 #define bmTDOOE       bmBIT1
 #define GetTDO(x)     TDO
+
+/* JTAG ENABLE */
+sbit JTAG_EN = 0xA7; /* Port C.7 */
+#define bmJTAG_EN bmBIT7
 
 //-----------------------------------------------------------------------------
 
@@ -141,19 +145,24 @@ void ProgIO_Init(void)
   // set the CPU clock to 48MHz, enable clock output to FPGA
   CPUCS = bmCLKOE | bmCLKSPD1;
 
-  // Use internal 48 MHz, enable output, use "Port" mode for all pins
-  IFCONFIG = bmIFCLKSRC | bm3048MHZ | bmIFCLKOE;
+   // put the system in FIFO mode by default
+   // internal clock source at 48Mhz, drive output pin, synchronous mode
+   // NOTE: Altera USB-Blaster does not work in another mode
+   IFCONFIG =  bmIFCLKSRC | bm3048MHZ | bmIFCLKOE;
+   IFCONFIG |= bmASYNC | bmIFCFG1 | bmIFCFG0;
 
-  // power on the onboard FPGA and all other VCCs, de-assert RESETN
-  IOE = 0x1F;
-  OEE = 0x1F;
-  mdelay(500); // wait for supply to come up
+   // set port C output enable (so we can handle the JTAG enable signal)
+   OEC = (1 << 7);
 
-#ifdef HAVE_OENABLE
-  OEC=(OEC&~(bmPROGINOE | bmPROGOUTOE)); // Output disable
-#else
-  OEC=(OEC&~bmPROGINOE) | bmPROGOUTOE; // Output enable
-#endif
+   // set port E output enable (actually only PE6 is used to enable/disable the 1.2V regulator, but for strange reasons we also have to enable PE1-5)
+   OEE = 0x7F;
+
+   // disconnect the 1.2V converter (in the configuration process, we can not draw
+   // more than 100ma)
+   IOE = (1 << 6);
+
+   // activate JTAG outputs on Port C
+   OEC = bmTDIOE | bmTCKOE | bmTMSOE | bmJTAG_EN;
 }
 
 void ProgIO_Set_State(unsigned char d)
@@ -168,11 +177,6 @@ void ProgIO_Set_State(unsigned char d)
    * d.5 => LED / Output Enable
    */
 
-#ifdef HAVE_OENABLE
-  if((d & bmBIT5) == 0)
-    OEC=(OEC&~(bmPROGINOE | bmPROGOUTOE)); // Output disable
-#endif
-
   SetTCK((d & bmBIT0) ? 1 : 0);
   SetTMS((d & bmBIT1) ? 1 : 0);
 #ifdef HAVE_AS_MODE
@@ -182,11 +186,6 @@ void ProgIO_Set_State(unsigned char d)
   SetTDI((d & bmBIT4) ? 1 : 0);
 #ifdef HAVE_OE_LED
   SetOELED((d & bmBIT5) ? 1 : 0);
-#endif
-
-#ifdef HAVE_OENABLE
-  if((d & bmBIT5) != 0)
-    OEC=(OEC&~bmPROGINOE) | bmPROGOUTOE; // Output enable
 #endif
 }
 

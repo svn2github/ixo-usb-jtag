@@ -31,6 +31,16 @@
 #include "syncdelay.h"
 #include "eeprom.h"
 
+
+
+#define HAVE_OE_LED 1
+
+sbit at 0x80+1        OELED; // red LED on S3E Starter Kit (0x80+0 is green one)
+
+#define SetOELED(x)   do{OELED=(x);}while(0)
+
+
+
 void ProgIO_Poll(void)    {}
 void ProgIO_Enable(void)  {}
 void ProgiO_Disable(void) {}
@@ -84,19 +94,6 @@ void ProgIO_Init(void)
   // Use internal 48 MHz, enable output, GPIF Master mode
   IFCONFIG = bmIFCLKSRC | bm3048MHZ | bmIFCLKOE | bmIFGPIF;
 
-  /* IOA.0 (0x01) LED green */
-  /* IOA.1 (0x02) LED red */ 
-  /* IOA.2 (0x04) R25 -> VCC */
-  /* IOA.3 (0x08) n.c. */
-  /* IOA.4 (0x10) CPLD 85 / ?*/
-  /* IOA.5 (0x20) CPLD 86 / OE? */
-  /* IOA.6 (0x40) CPLD 83 / ? */
-  /* IOA.7 (0x80) CPLD 49 */
-
-  /* IOC.x (0x..) GPIFADR.0..7 */
-
-  /* IOE.x (0x..) CPLD JTAG -> hw_xpcu_i */
-
   PORTACFG = 0x00; OEA = 0xFB; IOA = 0x20;
   PORTCCFG = 0x00; OEC = 0xFF; IOC = 0x10;
   PORTECFG = 0x00; OEE = 0xFC; IOE = 0xC0;
@@ -134,15 +131,28 @@ void ProgIO_Init(void)
   curios = 0;
 }
 
+unsigned char GetTDO(unsigned char r)
+{
+  unsigned char x;
+
+  IOC = 0x41;
+  while(!(GPIFTRIG & 0x80)); x = XGPIFSGLDATLX;
+  while(!(GPIFTRIG & 0x80)); x = XGPIFSGLDATLNOX;
+
+  if(IOA & 0x20) IOA |= 0x40; else IOA &= ~0x40;
+
+  return (x&1) ? r : 0;
+}
+
 #define SetPins(x) while(!(GPIFTRIG & 0x80)); XGPIFSGLDATLX = (x)
 
 void ProgIO_Set_State(unsigned char d)
 {
   /* Set state of output pins:
    *
-   * d.0 => TCK
-   * d.1 => TMS
-   * d.4 => TDI
+   * d.0 => TCK (PE.6)
+   * d.1 => TMS (PE.5)
+   * d.4 => TDI (PE.4)
    * d.6 => LED / Output Enable
    */
  
@@ -158,11 +168,6 @@ void ProgIO_Set_State(unsigned char d)
 
 unsigned char ProgIO_Set_Get_State(unsigned char d)
 {
-  unsigned char x;
-
-  /*
-   * Set state of output pins (see above)
-   */
 
   ProgIO_Set_State(d);
 
@@ -172,14 +177,10 @@ unsigned char ProgIO_Set_Get_State(unsigned char d)
    * DATAOUT => d.1 (only #ifdef HAVE_AS_MODE)
    */
 
-  IOC = 0x41; /* Select direction */
-  while(!(GPIFTRIG & 0x80)); x = XGPIFSGLDATLX;
-  while(!(GPIFTRIG & 0x80)); x = XGPIFSGLDATLNOX;
-
-  /* if(IOA & 0x20) IOA |= 0x40; else IOA &= ~0x40; */
-
-  return (x&1) | 2;
+  return 2|GetTDO(0x01);
 }
+
+
 
 void ProgIO_ShiftOut(unsigned char c)
 {
@@ -209,15 +210,12 @@ unsigned char ProgIO_ShiftInOut(unsigned char c)
 
   for(i=0,r=1,n=0;i<8;i++)
   {
-    unsigned char t;
+    unsigned char t = locios;
 
-    IOC = 0x41;
-    while(!(GPIFTRIG & 0x80)); t = XGPIFSGLDATLX;
-    while(!(GPIFTRIG & 0x80)); t = XGPIFSGLDATLNOX;
-    if(t & 1) n |= r;
+    n |= GetTDO(r);
 
     IOC = 0x81;
-    t = locios;
+
     if(c & r) t |= 0x10;
 
     SetPins(t);
