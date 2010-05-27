@@ -1,6 +1,36 @@
 usb_jtag using Cypress FX2 chip
 ===============================
 
+== IMPORTANT Branch Information ==
+
+This is a branch of the Cypress FX2 firmware, obtained from
+
+          http://fpga4u.epfl.ch/wiki/FX2
+
+Currently, this is **NOT** the official version of the FPGA4U firmware, if
+you're looking for that please go to the above link - that is where the
+development of the FPGA4U branch is happening at the moment.
+
+At the time of writing (May 2010), this directory reflects version 4.2.0 of the
+FPGA4U firmware, please check this against "FWVERSION" in "usbjtag.c". The
+intent is to keep this branch synced up with the FPGA4U releases as much as
+possible.
+
+The firmware was copied here in order to allow for merges of any useful changes
+from the FPGA4U version back to the original branch (this is TODO!), and in
+order to allow for bugfixes to be applied to both branches more easily.
+
+The differences between the original and the FPGA4U version are, as far as I
+know at the moment, the addition of the hardware-specific code file
+hw_fpga4u.c, the addition of FIFOs for bulk transfers, some custom vendor
+commands, and the change of the USB identification to match Altera's
+USB-Blaster (this latter change is NOT included in this repository).
+
+SVN information: This is a branch copied
+ from https://ixo-jtag.svn.sourceforge.net/svnroot/ixo-jtag/usb_jtag/trunk/device/c51
+   to https://ixo-jtag.svn.sourceforge.net/svnroot/ixo-jtag/usb_jtag/trunk/device/fpga4u
+   at revision 199.
+
 == General information ==
 
 The code in this directory is for Cypress FX2 (e.g. CY7C68013A) and can be

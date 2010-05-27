@@ -61,6 +61,9 @@ FILES: Beside this README, this archive contains the following files:
 
  - copying.txt: The text of the GNU Public License (GPL).
  - device/c51: Firmware for usb_jtag based on Cypress FX2, for SDCC compiler
+ - device/fpga4u: branch of the Cypress FX2 firmware for the "FPGA4U" boards,
+   please see device/fpga4u/README.txt and http://fpga4u.epfl.ch/wiki/FX2 for
+   more information!
  - device/fx2.old: Alternative, now old and unsupported FX2 firmware, for Keil
    compiler
  - device/cpld: CPLD logic for usb_jtag with FT245BM + CPLD
