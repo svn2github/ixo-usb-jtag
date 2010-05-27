@@ -2,7 +2,7 @@
 # nexys2prog - program a Digilent Nexys 2 FPGA board over USB
 # Copyright (c) 2009, Andrew Ross <andy@plausible.org>
 # Please see below for license terms (GPL).
-# https://sourceforge.net/projects/ixo-jtag/
+# http://ixo-jtag.sourceforge.net/
 #
 # Usage: nexys2prog [-v|--verbose] <Bitstream File>
 #

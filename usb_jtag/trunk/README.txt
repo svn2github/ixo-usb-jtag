@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301  USA
 NEWS:
 - May 2010: This project has been moved to SourceForge:
   
-             https://sourceforge.net/projects/ixo-jtag/
+             http://ixo-jtag.sourceforge.net/ 
   
   I (Hauke D.) have taken over the maintenance of this project for now. I've
   mostly just imported this usb_jtag project into the SVN repository, applied a

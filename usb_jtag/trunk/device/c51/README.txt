@@ -50,7 +50,7 @@ The hardware-specific code file is hw_nexys.c, just change the line
 Also, you may use the "nexys2prog" script by Andy Ross, available from the
 same place this code is available from:
 
-    https://sourceforge.net/projects/ixo-jtag/
+    http://ixo-jtag.sourceforge.net/
 
 
 == Adapting the code to your hardware ==
@@ -99,7 +99,7 @@ Compile for the XPCU with e.g. "make HARDWARE=hw_xpcu_x".
 
 Changes since previous release 2008-07-05:
   - Imported to SourceForge, please see the project page:
-    https://sourceforge.net/projects/ixo-jtag/
+    http://ixo-jtag.sourceforge.net/
 
 Changes since previous release on 2007-02-15:
   - Jean Nicolle contributed hw_saxo_l.c for the FX2 boards from fpga4fun.com

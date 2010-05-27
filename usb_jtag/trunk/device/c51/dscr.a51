@@ -145,6 +145,7 @@ _dscr_attrpow::
         .db        0x02             ; bEndpointAddress (EP 2 OUT)
         .db        ET_BULK          ; bmAttributes
         ;;; TODO (HD): Sune Mai's version has the following two values at 512 ?
+        ;;; --> compare with EP2CFG in usbjtag.c
         .db        <64              ; wMaxPacketSize (LSB)
         .db        >64              ; wMaxPacketSize (MSB)
         .db        0                ; bInterval (iso only)

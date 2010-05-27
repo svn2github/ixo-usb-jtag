@@ -1,6 +1,7 @@
 
 nexys2prog - program a Digilent Nexys 2 FPGA board over USB
 Copyright (c) 2009, Andrew Ross <andy@plausible.org>
+http://ixo-jtag.sourceforge.net/
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,7 +22,7 @@ News
 ====
 
 - May 2010: Imported into the SourceForge project ixo-jtag by Hauke Daempfling
-  https://sourceforge.net/projects/ixo-jtag/
+  http://ixo-jtag.sourceforge.net/
   I've updated the script with the latest version of the Cypress FX2 firmware,
   and updated the documentation a tiny bit. The original documentation
   follows. Note that some of the links no longer work, but the general idea is
@@ -102,8 +103,8 @@ install").  A permissions issue with USB device files on Ubuntu
 requires a small modification to the udev configuration, or simply
 running the script as root.
 
-Questions and comments should go to the author, Andy Ross, at
-andy@plausible.org
+For questions and comments please see the project page at
+http://ixo-jtag.sourceforge.net/
 
 [1] http://www.xilinx.com/ise/logic_design_prod/webpack.htm
 [2] http://digilentinc.com/Products/Detail.cfm?Prod=ADEPT
