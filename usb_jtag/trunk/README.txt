@@ -27,14 +27,20 @@ NEWS:
              http://ixo-jtag.sourceforge.net/ 
   
   I (Hauke D.) have taken over the maintenance of this project for now. I've
-  mostly just imported this usb_jtag project into the SVN repository, applied a
+  mostly just imported various things into the SVN repository, applied a
   few small patches, made a few minor updates, and did some general cleanup.
-  IMPORTANT: Since I only have a Nexys2 FPGA board, I can currently only vouch
-  for the firmware in the device/c51/ directory, and I have heard that this
-  firmware also works on the Nexys(1), and that the device/cpld/ directory
-  should still be current. All the other stuff might be in various states of
-  decay - if you are using any of these things in production, please let me
-  know so I can update this notice. Also, patches are *always* welcome :)
+  Please see the above link for information on getting help. Also, patches are
+  always welcome :)
+  
+  IMPORTANT: I can currently only comment on the status of a few of the things
+  here:
+  - the device/c51/ directory has been tested on a Nexys2 and Nexys(1)
+  - the device/cpld/ directory should be stable
+  - the device/fpga4u/ directory is in sync with version 4.2.0 of the FPGA4U
+    firmware (see the README in that directory for more information)
+  All the other stuff might be in various states of decay - if you are using
+  any of these things in production, I'd appreciate a note so that I can update
+  this notice.
 
 -----------------------------------------------------------------------------
 
@@ -57,9 +63,9 @@ ChipScope is a trademark of Xilinx Inc.
 
 -----------------------------------------------------------------------------
 
-FILES: Beside this README, this archive contains the following files:
+FILES: Beside this README, this repository contains the following files:
 
- - copying.txt: The text of the GNU Public License (GPL).
+ - COPYING.txt: The text of the GNU Public License (GPL).
  - device/c51: Firmware for usb_jtag based on Cypress FX2, for SDCC compiler
  - device/fpga4u: branch of the Cypress FX2 firmware for the "FPGA4U" boards,
    please see device/fpga4u/README.txt and http://fpga4u.epfl.ch/wiki/FX2 for

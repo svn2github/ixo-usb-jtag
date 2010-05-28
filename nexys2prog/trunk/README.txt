@@ -28,6 +28,8 @@ News
   follows. Note that some of the links no longer work, but the general idea is
   still the same. Also, note that the described fixes to the firmware have
   since been applied to the main source tree hosted at the SF project above.
+  The nexys2prog script was originally announced here:
+  http://groups.google.com/group/comp.arch.fpga/browse_thread/thread/c7557a7b4bc9900c
 
 nexys2prog
 ==========
