@@ -181,8 +181,8 @@ sub find_xilinx {
     $ise = qx(cd `dirname $ise`; /bin/pwd);
     chomp $ise;
     die "Cannot find Xilinx ISE installation directory.\n"
-	if $ise !~ /ISE\/bin\/lin$/;
-    $ise =~ s/\/bin\/lin$//;
+       if $ise !~ /ISE\/bin\/lin(64)?$/;
+    $ise =~ s/\/bin\/lin(64)?$//;
     die "Cannot understand Xilinx ISE installation tree.\n"
 	if !-d "$ise/spartan3e/data" or !-f "$ise/xcf/data/xcf04s.bsd";
     $XILINX = $ise;
